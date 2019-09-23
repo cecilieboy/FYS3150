@@ -108,7 +108,7 @@ def main():
     plt.ylabel(r"|u($\rho$)|$^2$", fontsize = 24)
     plt.show()
 
-    integration_points = [i*10 for i in range(1, 11)]
+    integration_points = [i*10 for i in np.arange(2,11,2)]
     rho_max = [5, 7.5, 10]
     
     A,rho = discretize_HO(60, rho_max=10)
@@ -126,8 +126,8 @@ def main():
     for i in range(len(rho_max)):
         plt.plot(integration_points, max_rel_err[i], label=r"$\rho_{max}$ = " + str(rho_max[i]))
     plt.legend(loc = 'best', fontsize = 24)
-    plt.xlabel(r"$\rho$", fontsize = 24)
-    plt.ylabel(r"max$\\frac{|\lambda-\lambda_{theo}|}{\lambda_{theo}}$", fontsize = 24)
+    plt.xlabel(r"N", fontsize = 24)
+    plt.ylabel(r"max$\frac{|\lambda-\lambda_{theo}|}{\lambda_{theo}}$", fontsize = 24)
     plt.show()
 
 main()
