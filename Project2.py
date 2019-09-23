@@ -91,7 +91,6 @@ def diag_A(A, tol = 10**(-10), max_count =1000):
 
 def discretize_HO(integrationpoints,rho_min = 0, rho_max = 10):
     h = (rho_max -rho_min) / integrationpoints
-    print(h)
     rho = np.array([rho_min +i *h for i in range(1,integrationpoints)])
     d = 2.0/h**2 * np.eye(integrationpoints -1) + np.diag(rho**2)
     e_upper = - 1.0/h**2 * np.eye(integrationpoints -1 , k=1)
@@ -99,9 +98,6 @@ def discretize_HO(integrationpoints,rho_min = 0, rho_max = 10):
     return d + e_lower + e_upper, rho
 
 def main():
-    integration_points = [i*10 for i in range(1, 11)]
-    rho_max = [5, 7.5, 10]
-    lam_theo = [3 + i*4 for i in range(N)]
     A,rho = discretize_HO(60, rho_max=10)
     lam, u = diag_A(A)
     plt.figure(figsize=(10,10))
@@ -110,6 +106,28 @@ def main():
     plt.legend(loc = 'best', fontsize = 24)
     plt.xlabel(r"$\rho$", fontsize = 24)
     plt.ylabel(r"|u($\rho$)|$^2$", fontsize = 24)
+    plt.show()
+
+    integration_points = [i*10 for i in range(1, 11)]
+    rho_max = [5, 7.5, 10]
+    
+    A,rho = discretize_HO(60, rho_max=10)
+    lam, u = diag_A(A)
+    max_rel_err = np.zeros((len(rho_max),len(integration_points)))
+
+    for i, r in enumerate(rho_max):
+        for j, N in enumerate(integration_points):
+            lam_theo = [3 + i*4 for i in range(N-1)]
+            A,rho = discretize_HO(N, rho_max=r)
+            lam, u = diag_A(A)
+            max_rel_err[i,j] = np.max(np.abs(lam - lam_theo)/lam_theo)
+
+    plt.figure(figsize=(10,10))
+    for i in range(len(rho_max)):
+        plt.plot(integration_points, max_rel_err[i], label=r"$\rho_{max}$ = " + str(rho_max[i]))
+    plt.legend(loc = 'best', fontsize = 24)
+    plt.xlabel(r"$\rho$", fontsize = 24)
+    plt.ylabel(r"max$\\frac{|\lambda-\lambda_{theo}|}{\lambda_{theo}}$", fontsize = 24)
     plt.show()
 
 main()
