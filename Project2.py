@@ -6,254 +6,112 @@
 
 import numpy as np
 from numpy import linalg as LA
+import matplotlib.pyplot as plt 
 
-
-# In[3]:
-
-
-n = 2
-A = 2*np.eye(n,n) + -1 * np.eye(n,n,k=-1) + -1 * np.eye(n,n,k=1)
-
-print(A)
-
-tau = (A[0,0] - A[1,1]) / (2 * A[1,0])
-tplus = - tau + np.sqrt(1 + tau**2)
-tminus = -tau - np.sqrt(1 + tau**2)
-
-c = 1 / (np.sqrt(1 + tau**2))
-s = c * tminus
-
-theta = np.arcsin(s)
-
-print(theta)
-
-B = np.zeros((2,2))
-
-B[0,0] = A[0,0] * c**2 - 2 * A[0,1] * c * s + A[1,1] * s**2
-
-B[1,1] = A[0,0] * c**2  + 2 * A[0,1] * c * s + A[0,0] * s**2
-
-B[0,1] = B[1,0] = (A[0,0] - A[1,1]) * c * s + A[0,1] * (c**2 - s**2)
-
-print(B)
-
-
-# In[32]:
-
-
-
-def code(n):  
-   
-   
-###########################   funktion for rotationen ###########################
-   
-   
-   def rotation(A,l,k,v): 
+def rotation(A,l,k,v): 
 # A er matricen der skal diagonaliseres
 # l, k er positionerne for rotationsledende og positionerne i A der bliver minimeret
 # v er en mastrix bestående af basisvektorene
-       
-
-       B = np.copy(A)
-       
-       w = np.copy(v)
-
-       tau = (A[l,l] - A[k,k]) / (2 * A[k,l])
+    
+    B = np.copy(A)    
+    w = np.copy(v)
+    tau = (A[l,l] - A[k,k]) / (2 * A[k,l])
 #tau er defineret sådan så vi får en andengradsligning
 
-       tplus  = -tau + np.sqrt(1 + tau**2)
-       tminus = -tau - np.sqrt(1 + tau**2)
+    tplus  = -tau + np.sqrt(1 + tau**2)
+    tminus = -tau - np.sqrt(1 + tau**2)
 #Udfra betingelsen at b_kl = 0, får vi en andengradsligning med disse løsninger for t        
 
-       if abs(tplus) < abs(tminus):
-           t = tplus
-       else:
-           t = tminus
+    if abs(tplus) < abs(tminus):
+        t = tplus
+    else:
+        t = tminus
 #Vi skal åbenbart altid vælge den mindre t?
-           
-       c = 1 / (np.sqrt(1 + t**2))
+        
+    c = 1 / (np.sqrt(1 + t**2))
+    s = t * c
+    for j in range(len(v)):
 
-       s = t * c
+        w[j,k] =   c * v[j,k] - s * v[j,l]
+        w[j,l] =   s * v[j,k] + c * v[j,l]
 
-       for j in range(len(v)):
-           print(k,l)
-           print(j)
-           print()
-           w[j,k] =   c * v[j,k] - s * v[j,l]
-           w[j,l] =   s * v[j,k] + c * v[j,l]
-           #print(w[k,j])
-           #print(w[l,j])
-           
-       print(w)
 #Vi fandt ud af ved testing at, hvis vi bruger rotatione matricen, sker der kun noget med k'te og l'te række i vær emkel søjle
-           
 
-       B[k,k] = A[k,k] * c**2 - 2 * A[k,l] * c * s + A[l,l] * s**2
-       B[l,l] = A[l,l] * c**2 + 2 * A[k,l] * c * s + A[k,k] * s**2
-       B[k,l] = B[l,k] = 0
+    B[k,k] = A[k,k] * c**2 - 2 * A[k,l] * c * s + A[l,l] * s**2
+    B[l,l] = A[l,l] * c**2 + 2 * A[k,l] * c * s + A[k,k] * s**2
+    B[k,l] = B[l,k] = 0
 # Her sker selve rotationen
 
-       for i in range(len(A)):
-
-
-           if i != k and i != l:
-               #B[i,i] = A[i,i]
-               B[i,k] = B[k,i] = A[i,k] * c - A[i,l] * s
-               B[i,l] = B[l,i] = A[i,l] * c + A[i,k] * s
+    for i in range(len(A)):
+        if i != k and i != l:
+            B[i,k] = B[k,i] = A[i,k] * c - A[i,l] * s
+            B[i,l] = B[l,i] = A[i,l] * c + A[i,k] * s
 #Alle andre led i k,l -række/søjle ændrer også værdi
 
 
-       return B,w
+    return B,w
 
-
-
-
-
-
-
-
-
-
-
-   def condition(A,max):
+def condition(A, max_value):
 #condition som stopper alogrithmen (returner False) ligeså snart den ikke finder nogen værdi som ligger over max
+    for i in range(len(A)):
+        for j in range(len(A)):
+            if i !=j:
+                if np.abs(A[i,j]) > max_value:
+                    return True
+    return False
 
 
-       for i in range(len(A)):
-           for j in range(len(A)):
+def diag_A(A, tol = 10**(-10), max_count =1000): 
+    n = len(A)    
+    v = np.eye(n,n)
+    count = 0
+    while condition(A, tol) and count < max_count:    
+        highestmatrixentry = 0  
+        for i in range(len(A)):
+            for j in range(len(A)):
+                if i != j: 
+                    if np.abs(A[i,j]) > highestmatrixentry:
+                        highestmatrixentry = np.abs(A[i,j])
+                        l, k = i, j
+    #Finder positionen af den højeste matrice indgang, med et loop som går igennem alle indgangene og opdaterer den højeste indgangs vœrdi/position
+        A,v = rotation(A,l,k,v)
+        count += 1  
+    #sort eigenvalues
+    lam = np.diag(A)
+    ind_sort = np.argsort(lam)
+    vT = v.T
+    lam_sort = np.zeros(lam.shape)
+    vT_sort = np.zeros(vT.shape) 
+    for i in range(len(lam)):
+        ind = ind_sort[i]
+        lam_sort[i] = lam[ind]
+        vT_sort[i] = vT[ind]
+    #returns sorted eigen values and sorted eigenvectors column-wise
+    return lam_sort, vT_sort
 
+def discretize_HO(integrationpoints,rho_min = 0, rho_max = 10):
+    h = (rho_max -rho_min) / integrationpoints
+    print(h)
+    rho = np.array([rho_min +i *h for i in range(1,integrationpoints)])
+    d = 2.0/h**2 * np.eye(integrationpoints -1) + np.diag(rho**2)
+    e_upper = - 1.0/h**2 * np.eye(integrationpoints -1 , k=1)
+    e_lower = - 1.0/h**2 * np.eye(integrationpoints -1 , k=-1)
+    return d + e_lower + e_upper, rho
 
-               if i !=j:
-                   if np.abs(A[i,j]) > max:
-                       return True
+def main():
+    integration_points = [i*10 for i in range(1, 11)]
+    rho_max = [5, 7.5, 10]
+    lam_theo = [3 + i*4 for i in range(N)]
+    A,rho = discretize_HO(60, rho_max=10)
+    lam, u = diag_A(A)
+    plt.figure(figsize=(10,10))
+    for i in range(5):
+        plt.plot(rho , u[i]**2, label = "$\lambda$ = %.4f" %lam[i] )
+    plt.legend(loc = 'best', fontsize = 24)
+    plt.xlabel(r"$\rho$", fontsize = 24)
+    plt.ylabel(r"|u($\rho$)|$^2$", fontsize = 24)
+    plt.show()
 
-       return False
+main()
 
-
-
-
-
-
-#Definere A udfra vores andengradslignings problem, definere v som matrix med enhedsvektorer, definere max:    
-   A =          2*np.eye(n,n) + -1 * np.eye(n,n,k=-1) + -1 * np.eye(n,n,k=1)
-   Aunchanged = 2*np.eye(n,n) + -1 * np.eye(n,n,k=-1) + -1 * np.eye(n,n,k=1)
-   v = np.eye(n,n)
-   print(len(v))
-   max = 10**(-10)   
-   count = 0
-   max_count = 100
-   
-   
-   
-   
-   
-   while condition(A,max) and count < max_count:    
-
-
-       highestmatrixentry = 0  
-
-
-       for i in range(len(A)):
-           for j in range(len(A)):
-
-               if i != j: 
-
-                   if np.abs(A[i,j]) > highestmatrixentry:
-
-                       highestmatrixentry = np.abs(A[i,j])
-                       l, k = i, j
-#Finder positionen af den højeste matrice indgang, med et loop som går igennem alle indgangene og opdaterer den højeste indgangs vœrdi/position
-
-       
-       A,v = rotation(A,l,k,v)
-       #print("===============")
-       #print(A)
-       print(k,l)
-
-
-       count += 1
-
-
-       
-       
-       
-       
-       
-       
-       
-       
-
-   print('diagonalized matrix:')
-   print(A)
-   #print('number of rotations =', count)
-   print('Matrix of eigvectors:')
-   print(v)
-   
-   print()
-   
-   #print(np.dot(np.transpose(v),v))
-   
-   eigvalues = np.diag(A)
-   #print(eigvalues)
-   
-   a1 = np.dot(Aunchanged,v[:,0]) 
-   a2 = eigvalues[0] * v[:,0]
-   
-   print('own test')
-   print(a1)
-   print(a2)
-   
-   #print(a1,a2)
-   
-   print('pythons solutions:')
-   pythoneigvalues, pythoneigvectors = LA.eig(Aunchanged)
-   print(pythoneigvalues)
-   print(pythoneigvectors)
-   print(np.dot(Aunchanged,pythoneigvectors[:,0]))
-   print(pythoneigvalues[0] * pythoneigvectors[:,0])
-   
-   
-   
-code(3)  
-
-           
-           
-   
-   
-
-
-
-           
-               
-
-               
-                   
-                   
-                   
-                   
-        
-
-   
-
-
-# In[ ]:
-
-
-A = [[1,4],[1,3]]
-s = np.max (A)
-print(s)
-p = len(A)
-print(p)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
+#%%
