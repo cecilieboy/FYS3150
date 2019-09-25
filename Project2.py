@@ -1,6 +1,5 @@
 
 
-
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt 
@@ -25,51 +24,41 @@ def rotation(A,l,k,v):
         t = tminus
 #Vi skal åbenbart altid vælge den mindre t?
         
-    c = 1 / (np.sqrt(1 + t**2))
+    c = 1.0 / (np.sqrt(1 + t**2))
     s = t * c
     for j in range(len(v)):
 
         w[j,k] =   c * v[j,k] - s * v[j,l]
         w[j,l] =   s * v[j,k] + c * v[j,l]
+        # Her sker selve rotationen
+
+        if j != k and j != l:
+            B[j,k] = B[k,j] = A[j,k] * c - A[j,l] * s
+            B[j,l] = B[l,j] = A[j,l] * c + A[j,k] * s
 
 #Vi fandt ud af ved testing at, hvis vi bruger rotatione matricen, sker der kun noget med k'te og l'te række i vær emkel søjle
 
     B[k,k] = A[k,k] * c**2 - 2 * A[k,l] * c * s + A[l,l] * s**2
     B[l,l] = A[l,l] * c**2 + 2 * A[k,l] * c * s + A[k,k] * s**2
     B[k,l] = B[l,k] = 0
-# Her sker selve rotationen
-
-    for i in range(len(A)):
-        if i != k and i != l:
-            B[i,k] = B[k,i] = A[i,k] * c - A[i,l] * s
-            B[i,l] = B[l,i] = A[i,l] * c + A[i,k] * s
-#Alle andre led i k,l -række/søjle ændrer også værdi
 
 
     return B,w
-
-def condition(A, max_value):
-#condition som stopper alogrithmen (returner False) ligeså snart den ikke finder nogen værdi som ligger over max
-    for i in range(len(A)):
-        for j in range(len(A)):
-            if i !=j:
-                if np.abs(A[i,j]) > max_value:
-                    return True
-    return False
-
 
 def diag_A(A, tol = 10**(-10), max_count =1000): 
     n = len(A)    
     v = np.eye(n,n)
     count = 0
-    while condition(A, tol) and count < max_count:    
-        highestmatrixentry = 0  
-        for i in range(len(A)):
-            for j in range(len(A)):
-                if i != j: 
-                    if np.abs(A[i,j]) > highestmatrixentry:
-                        highestmatrixentry = np.abs(A[i,j])
-                        l, k = i, j
+    while count < max_count:    
+        highestmatrixentry = -1  
+        for i in range(len(A)-1):
+            temp = np.argmax(np.abs(A[i, i+1:]))
+            temp += i+1
+            if np.abs(A[i,temp]) > highestmatrixentry:
+                highestmatrixentry = np.abs(A[i,temp])
+                l, k= i, temp
+        if highestmatrixentry < tol:
+            break
     #Finder positionen af den højeste matrice indgang, med et loop som går igennem alle indgangene og opdaterer den højeste indgangs vœrdi/position
         A,v = rotation(A,l,k,v)
         count += 1  
@@ -99,11 +88,11 @@ def main():
     N = [5* i for i in range(1,17)]
     tol = [10**(-1), 10**(-8), 10**(-16)]
     count = np.zeros((len(tol), len(N)))
+    
     plt.figure(figsize=(10,10))
     for i, t in enumerate(tol):
         for j, n in enumerate(N):
-            np.random.seed(0)
-            A = np.random.randint(low = 1, high = 10, size = n**2).reshape(n,n)
+            A = -2* np.eye(n) + np.eye(n,k=1) + np.eye(n,k=-1) 
             _,  _, count[i,j] = diag_A(A, tol= t, max_count = 10**9)
         plt.plot(N,count[i], label ='tol = %f' % t)
     plt.legend(loc ='best', fontsize = 24)
@@ -111,29 +100,31 @@ def main():
     plt.ylabel(r"# Rotation calls", fontsize = 24)
     plt.savefig('benchmark.pdf') 
 
-    print("solution")
-    A,rho = discretize_HO(150, rho_max=7.5)
-    lam, u, _ = diag_A(A,tol=10**(-10), max_count=10**12)
-    plt.figure(figsize=(10,10))
-    for i in range(3):
-        plt.plot(rho , u[i]**2, label = "$\lambda$ = %.5f" %lam[i] )
-    plt.legend(loc = 'best', fontsize = 24)
-    plt.xlabel(r"$\rho$", fontsize = 24)
-    plt.ylabel(r"|u($\rho$)|$^2$", fontsize = 24)
-    plt.savefig('solution.pdf')
-    """
+   
+    
     integration_points = [i*10 for i in np.arange(2 ,21, 4)]
-    rho_max = [7.5, 10, 12.5]
+    rho_max = [5, 7.5, 10, 12.5]
     max_rel_err = np.zeros((len(rho_max),len(integration_points)))
     print("rel. err")
     for i, r in enumerate(rho_max):
+        print("solution")
+        A,rho = discretize_HO(150, rho_max=r)
+        lam, u, _ = diag_A(A,tol=10**(-10), max_count=10**12)
+        plt.figure(figsize=(10,10))
+        for k in range(3):
+            plt.plot(rho , u[k]**2, label = "$\lambda$ = %.5f" %lam[k] )
+        plt.legend(loc = 'best', fontsize = 24)
+        plt.xlabel(r"$\rho$", fontsize = 24)
+        plt.ylabel(r"|u($\rho$)|$^2$", fontsize = 24)
+        plt.savefig('solution_%i.pdf'%r)
+        plt.close('all')
         for j, N in enumerate(integration_points):
             print(r,N)
             lam_theo = [3 + i*4 for i in range(N-1)]
             A, rho = discretize_HO(N, rho_max=r)
             lam, u, c = diag_A(A, tol=10**(-5), max_count= 10**6)
             max_rel_err[i,j] = np.max(np.abs(lam - lam_theo)/lam_theo)
-            print("count: %i" %i)
+            print("count: %i" %c)
 
     plt.figure(figsize=(10,10))
     for i in range(len(rho_max)):
@@ -142,7 +133,7 @@ def main():
     plt.xlabel(r"N", fontsize = 24)
     plt.ylabel(r"max$\frac{|\lambda-\lambda_{theo}|}{\lambda_{theo}}$", fontsize = 24)
     plt.savefig('error.pdf')
-    """
+    
 main()
 
 #%%
