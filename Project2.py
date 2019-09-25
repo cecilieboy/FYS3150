@@ -91,11 +91,11 @@ def main():
     N = [5* i for i in range(1,17)]
     tol = [10**(-1), 10**(-8), 10**(-16)]
     count = np.zeros((len(tol), len(N)))
+    
     plt.figure(figsize=(10,10))
     for i, t in enumerate(tol):
         for j, n in enumerate(N):
-            np.random.seed(0)
-            A = np.random.randint(low = 1, high = 10, size = n**2).reshape(n,n)
+            A = -2* np.eye(n) + np.eye(n,k=1) + np.eye(n,k=-1) 
             _,  _, count[i,j] = diag_A(A, tol= t, max_count = 10**9)
         plt.plot(N,count[i], label ='tol = %f' % t)
     plt.legend(loc ='best', fontsize = 24)
