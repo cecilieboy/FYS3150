@@ -114,8 +114,8 @@ def main():
         A,rho = discretize_HO(150, rho_max=r)
         lam, u, _ = diag_A(A,tol=10**(-10), max_count=10**12)
         plt.figure(figsize=(10,10))
-        for i in range(3):
-            plt.plot(rho , u[i]**2, label = "$\lambda$ = %.5f" %lam[i] )
+        for k in range(3):
+            plt.plot(rho , u[k]**2, label = "$\lambda$ = %.5f" %lam[k] )
         plt.legend(loc = 'best', fontsize = 24)
         plt.xlabel(r"$\rho$", fontsize = 24)
         plt.ylabel(r"|u($\rho$)|$^2$", fontsize = 24)
@@ -127,7 +127,7 @@ def main():
             A, rho = discretize_HO(N, rho_max=r)
             lam, u, c = diag_A(A, tol=10**(-5), max_count= 10**6)
             max_rel_err[i,j] = np.max(np.abs(lam - lam_theo)/lam_theo)
-            print("count: %i" %i)
+            print("count: %i" %c)
 
     plt.figure(figsize=(10,10))
     for i in range(len(rho_max)):
