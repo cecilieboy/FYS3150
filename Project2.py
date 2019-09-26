@@ -85,7 +85,46 @@ def discretize_HO(integrationpoints,rho_min = 0, rho_max = 10):
     e_upper = - 1.0/h**2 * np.eye(integrationpoints -1 , k=1)
     e_lower = - 1.0/h**2 * np.eye(integrationpoints -1 , k=-1)
     return d + e_lower + e_upper, rho
+    
+def charac_poly(a,b):
 
+    f = np.zeros(len(a))
+    for i in range(len(a)):
+        
+
+        if i == 0:
+
+            f[i] = 1 
+
+        else:
+
+            f[i] = (a[i - 1]) * f[i - 1] - b[i - 2]**2 * f[i - 2]
+            
+    charac_poly = f[len(f) - 1]        
+
+    return charac_poly 
+    
+    
+def bisect(a,b,wert1,wert2,max_count, tolerance):
+    
+    count = 0
+    
+    while np.abs(wert2 - wert1) > tolerance and count < max_count:
+        
+        
+            
+        if charac_poly(a - wert2,b) * charac_poly((wert1 + wert2) / 2, b) > 0:
+
+            wert1 = (wert1 + wert2) / 2
+
+        if charac_poly(a - wert1,b) * charac_poly((wert1 + wer2) / 2,b) > 0:
+
+            wert2 = (wert1 + wert2) / 2
+
+        count += 1 
+        
+        return wert1
+        
 def find_eigen(a,b, max_iter = 1000, max_eigen = 3, tol = 10**-5):
     """
     calculates the first max_eigen values of a tridiagonal, symetric matrix
@@ -101,7 +140,7 @@ def find_eigen(a,b, max_iter = 1000, max_eigen = 3, tol = 10**-5):
     bounds_up = [a[i] + np.abs(b[i]) + np.abs(b[i+1]) for i in range(max_eigen)]
     for i in range(n):
         for j in range( max_eigen):
-            lam[j] = bisect(a[:i], b[:i], bounds_low[j], bounds_up[j])
+            lam[j] = bisect(a[:i], b[:i], bounds_low[j], bounds_up[j], max_count=max_iter, tolerance=tol)
             #update boundaries with interlacing theorem
             bounds_up[j] = lam[j]
             if j + 1 < max_eigen :
