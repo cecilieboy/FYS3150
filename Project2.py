@@ -86,6 +86,34 @@ def discretize_HO(integrationpoints,rho_min = 0, rho_max = 10):
     e_lower = - 1.0/h**2 * np.eye(integrationpoints -1 , k=-1)
     return d + e_lower + e_upper, rho
 
+def find_eigen(a,b, max_iter = 1000, max_eigen = 3, tol = 10**-5):
+    """
+    calculates the first max_eigen values of a tridiagonal, symetric matrix
+    with a the diagonal and b the non diagonal entries
+    a is expected to be sorted in ascending order
+    max_iter is used for the maximum number of iterations
+    returns the first max_eigen eigenvalues
+    """
+    n = len(a)
+    lam = np.zeros(n)
+    bshift_up = np.append(b[1:],[0,0])
+    bshift_low = np.append(b,0)
+    #setup bounderis with Gash Goren
+    bounds_low = a - np.abs(bshift_low) - np.abs(bshift_up)
+    bounds_up = a + np.abs(bshift_low) + np.abs(bshift_up)
+    for i in range(n):
+        lam_old = lam[:max_eigen+1]
+        for j in range( max_eigen + 1 ):
+            lam[j] = bisect(a[:i], b[:i], bounds_low[j], bounds_up[j])
+            bounds_up[j] = lam[j]
+            if j + 1 < n :
+                bounds_low[j + 1] = lam[j]
+            
+        if np.all( np.abs(lam_old - lam[:max_eigen +1]) < tol):
+            break
+
+    return lam[:max_eigen+1]
+
 def main():
     ## benchmark diag_A n = 5, 10, 15, 20 , 25, tol e-4,e-8, e-12
     N = [5* i for i in range(1,17)]
@@ -105,14 +133,14 @@ def main():
 
    
     
-    integration_points = [i*10 for i in np.arange(2 ,21, 4)]
-    rho_max = [5, 7.5, 10, 12.5]
+    integration_points = [i*10 for i in np.arange(2 ,23, 4)]
+    rho_max = [2, 5, 7.5, 10, 12.5]
     max_rel_err = np.zeros((len(rho_max),len(integration_points)))
     print("rel. err")
     for i, r in enumerate(rho_max):
         print("solution")
         A,rho = discretize_HO(150, rho_max=r)
-        lam, u, _ = diag_A(A,tol=10**(-10), max_count=10**12)
+        lam, u, _ = diag_A(A,tol=10**(-10), max_count=10**9)
         plt.figure(figsize=(10,10))
         for k in range(3):
             plt.plot(rho , u[k]**2, label = "$\lambda$ = %.5f" %lam[k] )
