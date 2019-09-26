@@ -95,24 +95,22 @@ def find_eigen(a,b, max_iter = 1000, max_eigen = 3, tol = 10**-5):
     returns the first max_eigen eigenvalues
     """
     n = len(a)
-    lam = np.zeros(n)
-    bshift_up = np.append(b[1:],[0,0])
-    bshift_low = np.append(b,0)
+    lam = np.zeros(max_eigen)
     #setup bounderis with Gash Goren
-    bounds_low = a - np.abs(bshift_low) - np.abs(bshift_up)
-    bounds_up = a + np.abs(bshift_low) + np.abs(bshift_up)
+    bounds_low = [a[i] - np.abs(b[i]) - np.abs(b[i+1]) for i in range(max_eigen)]
+    bounds_up = [a[i] + np.abs(b[i]) + np.abs(b[i+1]) for i in range(max_eigen)]
     for i in range(n):
-        lam_old = lam[:max_eigen+1]
-        for j in range( max_eigen + 1 ):
+        for j in range( max_eigen):
             lam[j] = bisect(a[:i], b[:i], bounds_low[j], bounds_up[j])
+            #update boundaries with interlacing theorem
             bounds_up[j] = lam[j]
-            if j + 1 < n :
+            if j + 1 < max_eigen :
                 bounds_low[j + 1] = lam[j]
             
-        if np.all( np.abs(lam_old - lam[:max_eigen +1]) < tol):
-            break
+        if np.all( bounds_up[ : max_eigen +1] - bounds_low[ : max_eigen +1] < tol):
+            return lam
 
-    return lam[:max_eigen+1]
+    return lam
 
 def main():
     ## benchmark diag_A n = 5, 10, 15, 20 , 25, tol e-4,e-8, e-12
