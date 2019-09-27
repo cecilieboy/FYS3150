@@ -84,46 +84,51 @@ def discretize_HO(integrationpoints,rho_min = 0, rho_max = 10):
     return d + e_lower + e_upper, rho
     
 def charac_poly(a,b):
-
-    f = np.zeros(len(a))
-    for i in range(len(a)):
-        
-
-        if i == 0:
-
-            f[i] = 1 
-
+    n = len(a) + 1
+    f, q = np.zeros((2,n))
+    f[0] = 1
+    for i in range(0, n -1):
+        f[i + 1] = a[i]*f[i]
+        if i > 0:
+            f[i+1] -= b[i-1]**2 * f[i - 1]
+        if abs(f[i]) < 10**(-15):
+            q[i + 1] = a[i] - abs(b[i-1])*10**(-15)
         else:
+            q[i +1] = f[i + 1]/f[i]
+    return f[-1]
 
-            f[i] = (a[i - 1]) * f[i - 1] - b[i - 2]**2 * f[i - 2]
+def stable_ver(a,b):
+    n = len(a) 
+    q = np.zeros(n + 1)
+    q[0] = 1
+    q[1] = a[0]
+    for i in range(1, n):
+        q[i+1] = a[i] - b[i-1]**2 / q[i - 1]
+    return q[-1]
+
+    
+    
+def bisect(a, b, low, up, max_count, tolerance):
+    
+    count = 0    
+    while np.abs(up - low) > tolerance and count < max_count:
+        c = 0.5*(low + up)
+        fa = charac_poly(a - low, b)
+        fb = charac_poly(a - up, b)
+        fc = charac_poly(a - c, b)   
+        if fa*fb > 0:
+            raise ArithmeticError("Fail at ", count)   
             
-    charac_poly = f[len(f) - 1]        
-
-    return charac_poly 
-    
-    
-def bisect(a,b,wert1,wert2,max_count, tolerance):
-    
-    count = 0
-    
-    while np.abs(wert2 - wert1) > tolerance and count < max_count:
-        
-        
-            
-        if charac_poly(a - wert2,b) * charac_poly((wert1 + wert2) / 2, b) > 0:
-
-            wert1 = (wert1 + wert2) / 2
-
-        if charac_poly(a - wert1,b) * charac_poly((wert1 + wer2) / 2,b) > 0:
-
-            wert2 = (wert1 + wert2) / 2
-
+        if fa*fc < 0:
+            up = c 
+        if fc*fb < 0:
+            low = c
         count += 1 
-        
-        return wert1
-        
-def find_eigen(a,b, max_iter = 1000, max_eigen = 3, tol = 10**-5):
+    return up
+      
+def find_eigen(a,b, max_iter = 10**5, max_eigen = 3, tol = 10**-5):
     """
+    UNSTABLE VERSION
     calculates the first max_eigen values of a tridiagonal, symetric matrix
     with a the diagonal and b the non diagonal entries
     a is expected to be sorted in ascending order
@@ -131,22 +136,70 @@ def find_eigen(a,b, max_iter = 1000, max_eigen = 3, tol = 10**-5):
     returns the first max_eigen eigenvalues
     """
     n = len(a)
+    lam = np.zeros(max_eigen + 1)
+    #setup bounderis with Gash Goren
+    bounds_low = np.array([a[i] - np.abs(b[i]) - np.abs(b[i+1]) for i in range(max_eigen + 1)])
+    bounds_up = np.array([a[i] + np.abs(b[i]) + np.abs(b[i+1]) for i in range(max_eigen + 1)])
+    #first iteration lam = a[0]
+    bounds_up[0] = a[0]
+    bounds_low[1] = a[0]
+    for i in range(2,n):
+        #print(i)
+        blt = np.copy(bounds_low)
+        but = np.copy(bounds_up)
+        lt = np.copy(lam)
+        for j in range(max_eigen + 1):
+            if j < i:
+                lam[j] = bisect(a[:i], b[:i - 1 ], blt[j], but[j], max_count=max_iter, tolerance=tol)
+                #update boundaries with interlacing theorem
+                bounds_up[j] = lam[j]
+                if j + 1 < max_eigen + 1:
+                    bounds_low[j + 1] = lam[j]
+
+        if np.max(np.abs(lam-lt)) < tol:
+            print('Converged')
+            return lam[:-1]
+
+    return lam[:-1]
+    
+"""
+BEGIN OF STABel Imlmenetation
+def find_eigen(a,b, max_iter = 10**5, max_eigen = 3, tol = 10**-5):
+    #
+    #calculates the first max_eigen values of a tridiagonal, symetric matrix
+    #with a the diagonal and b the non diagonal entries
+    #a is expected to be sorted in ascending order
+    #max_iter is used for the maximum number of iterations
+    #returns the first max_eigen eigenvalues
+    
+    n = len(a)
     lam = np.zeros(max_eigen)
     #setup bounderis with Gash Goren
-    bounds_low = [a[i] - np.abs(b[i]) - np.abs(b[i+1]) for i in range(max_eigen)]
-    bounds_up = [a[i] + np.abs(b[i]) + np.abs(b[i+1]) for i in range(max_eigen)]
-    for i in range(n):
-        for j in range( max_eigen):
-            lam[j] = bisect(a[:i], b[:i], bounds_low[j], bounds_up[j], max_count=max_iter, tolerance=tol)
-            #update boundaries with interlacing theorem
-            bounds_up[j] = lam[j]
-            if j + 1 < max_eigen :
-                bounds_low[j + 1] = lam[j]
-            
-        if np.all( bounds_up[ : max_eigen +1] - bounds_low[ : max_eigen +1] < tol):
-            return lam
+    bounds_low = a[0] - np.abs(b[0]) 
+    bounds_up = a[0] + np.abs(b[0])
+    for j in range(max_eigen):
+        if j > 0 :
+            c =a[j] - np.abs(b[j]) - abs(b[j+1])
+            if c>bounds_up:
+                bounds_low = c
+            else: 
+                bounds_low = bounds_up
+            bounds_up = a[j] + abs(b[j]) + abs(b[j+1])  
+            a = 0  
+            q = 1        
+            for i in range(1,n):
+                q = a[i] -
+                #update boundaries with interlacing theorem
+                bounds_up = lam[j]
+                if j + 1 < max_eigen + 1:
+                    bounds_low[j + 1] = lam[j]
+
+                if bounds_up- bounds_low < tol:
+                    print('Converged')
+                    return lam
 
     return lam
+"""
 
 def main():
     ## benchmark diag_A n = 5, 10, 15, 20 , 25, tol e-4,e-8, e-12
@@ -199,6 +252,15 @@ def main():
     plt.ylabel(r"max$\frac{|\lambda-\lambda_{theo}|}{\lambda_{theo}}$", fontsize = 24)
     plt.savefig('error.pdf')
     
-main()
+def test_eigen():
+    A, rho = discretize_HO(100,0,10)
+    a = np.diag(A)
+    b = np.diag(A,k=1)
+    lam = find_eigen(a,b, tol=10**(-8), max_iter= 10**6)
+    print(lam)
+
+if __name__ == '__main__':
+    test_eigen()
+    #main()
 
 #%%
