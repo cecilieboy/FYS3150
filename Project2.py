@@ -23,7 +23,7 @@ def rotation(A,l,k,v):
         t = tplus
     else:
         t = tminus
-#Vi skal åbenbart altid vælge den mindre t?
+
         
     c = 1.0 / (np.sqrt(1 + t**2))
     s = t * c
@@ -89,9 +89,9 @@ def charac_poly(a,b):
     f, q = np.zeros((2,n))
     f[0] = 1
     for i in range(0, n -1):
-        f[i + 1] = a[i]*f[i]
+        f[i + 1] = a[i] * f[i] 
         if i > 0:
-            f[i+1] -= b[i-1]**2 * f[i - 1]
+            f[i+1] -= b[i-1]**2 * f[i - 1] 
         if abs(f[i]) < 10**(-15):
             q[i + 1] = a[i] - abs(b[i-1])*10**(-15)
         else:
@@ -165,7 +165,7 @@ def find_eigen(a,b, max_iter = 10**5, max_eigen = 3, tol = 10**-5):
     return lam[:-1]
     
 """
-BEGIN OF STABel Imlmenetation
+BEGIN OF STABel Implementation
 def find_eigen(a,b, max_iter = 10**5, max_eigen = 3, tol = 10**-5):
     #
     #calculates the first max_eigen values of a tridiagonal, symetric matrix
