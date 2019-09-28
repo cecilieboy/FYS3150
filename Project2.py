@@ -152,6 +152,7 @@ def find_eigen(a,b, max_iter = 10**5, max_eigen = 3, tol = 10**-5):
             if j < i:
                 lam[j] = bisect(a[:i], b[:i - 1 ], blt[j], but[j], max_count=max_iter, tolerance=tol)
                 #update boundaries with interlacing theorem
+                #new lam is upper bound
                 bounds_up[j] = lam[j]
                 if j + 1 < max_eigen + 1:
                     bounds_low[j + 1] = lam[j]
