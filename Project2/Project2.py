@@ -220,7 +220,7 @@ def main():
 
    
     
-    integration_points = [i*10 for i in np.arange(2 ,23, 4)]
+    integration_points = [i*10 for i in np.arange(2 ,26, 4)]
     rho_max = [2, 5, 7.5, 10, 12.5]
     max_rel_err = np.zeros((len(rho_max),len(integration_points)))
     print("rel. err")
