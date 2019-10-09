@@ -113,3 +113,9 @@ def radial_integration(N):
 print(radial_integration(20), 5*np.pi**2/16**2)
 
 #%%
+def brutforce_mc(samples, cutoff, cycles):
+    result = np.zeros(cycles)
+    for i  in range(cycles):
+        points = -cutoff + 2*cutoff * np.random.rand(samples * 6)
+        points = points.reshape(6,samples)
+        
