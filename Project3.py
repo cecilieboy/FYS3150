@@ -66,10 +66,10 @@ def integral(N):
         sum += value 
     return sum
 
-def integrand_radial(r1, r2, t1, t2, p1,p2, gen_lag = False):
+def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False):
     """
     returns the integrand in radial coordinates
-    (r_i might be scaled for proper results)
+    (r_i might be scaled for proper results, its integrated over cos theta)
     gen_lag-flag can be used wehn generalized Laguerre polynomials are used
     treatment of singual values is: usinig principle value + same curvature around r1 = r2
                                     --> return 0
@@ -78,7 +78,7 @@ def integrand_radial(r1, r2, t1, t2, p1,p2, gen_lag = False):
         num = 1
     else:
         num = r1**2 * r2**2
-    cos_b = np.cos(t1) * np.cos(t2) +np.sin(t1)*np.sin(t2) * np.cos(p1-p2)
+    cos_b = ct1 * ct2 + np.sqrt((1-ct1**2) * (1 - ct2**2)) * np.cos(p1-p2)
     r12 = np.sqrt( r1**2 + r2**2 - 2 * r1*r2*cos_b )
     if r12 != 0:
         return num / r12
@@ -97,7 +97,7 @@ def radial_integration(N):
     weights_r, r = GaussLaguerre(N)
     x  = r / 4
     weights_t, t = L_function(N)
-    weights_p, p = weights_t, np.pi*(t + 1)
+    weights_p, p = weights_t, np.pi*( t + 1)
 
     integral  = 0
     for i in range(N):
@@ -110,6 +110,6 @@ def radial_integration(N):
                                             integrand_radial(x[i], x[j], t[k], t[l], p[m], p[n]))
     return transformation * integral
 
-print(radial_integration(5), 5*np.pi**2/16)
+print(radial_integration(20), 5*np.pi**2/16**2)
 
 #%%
