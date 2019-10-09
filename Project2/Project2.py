@@ -3,6 +3,7 @@
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt 
+import time
 
 def rotation(A,l,k,v): 
 # A er matricen der skal diagonaliseres
@@ -152,6 +153,7 @@ def find_eigen(a,b, max_iter = 10**5, max_eigen = 3, tol = 10**-5):
             if j < i:
                 lam[j] = bisect(a[:i], b[:i - 1 ], blt[j], but[j], max_count=max_iter, tolerance=tol)
                 #update boundaries with interlacing theorem
+                #new lam is upper bound
                 bounds_up[j] = lam[j]
                 if j + 1 < max_eigen + 1:
                     bounds_low[j + 1] = lam[j]
@@ -206,28 +208,37 @@ def main():
     N = [5* i for i in range(1,17)]
     tol = [10**(-1), 10**(-8), 10**(-16)]
     count = np.zeros((len(tol), len(N)))
-    
+    times = np.zeros((len(tol), len(N),2))
     plt.figure(figsize=(10,10))
     for i, t in enumerate(tol):
         for j, n in enumerate(N):
             A = -2* np.eye(n) + np.eye(n,k=1) + np.eye(n,k=-1) 
+            start = time.perf_counter()
             _,  _, count[i,j] = diag_A(A, tol= t, max_count = 10**9)
-        plt.plot(N,count[i], label ='tol = %f' % t)
+            times [i,j,0] = time.perf_counter()-start
+            start = time.perf_counter()
+            find_eigen(-2*np.ones(n), np.ones(n), max_iter=10**9, max_eigen=3, tol = t)
+            times [i,j,1] = time.perf_counter()-start
+            
+        plt.plot(N,times[i,:,0], label ='Jacobi; tol = %f' % t)
+        plt.plot(N,times[i,:,1], label ='Bisect; tol = %f' % t)
     plt.legend(loc ='best', fontsize = 24)
     plt.xlabel(r"Dimensions", fontsize = 24)
-    plt.ylabel(r"# Rotation calls", fontsize = 24)
-    plt.savefig('benchmark.pdf') 
+    plt.ylabel(r"Time in s", fontsize = 24)
+    plt.savefig('benchmark_jacobi_vs_bisect.pdf') 
 
    
     
     integration_points = [i*10 for i in np.arange(2 ,26, 4)]
     rho_max = [2, 5, 7.5, 10, 12.5]
-    max_rel_err = np.zeros((len(rho_max),len(integration_points)))
+    max_rel_err = np.zeros((len(rho_max),len(integration_points),2))
     print("rel. err")
     for i, r in enumerate(rho_max):
         print("solution")
         A,rho = discretize_HO(150, rho_max=r)
+        
         lam, u, _ = diag_A(A,tol=10**(-10), max_count=10**9)
+        
         plt.figure(figsize=(10,10))
         for k in range(3):
             plt.plot(rho , u[k]**2, label = "$\lambda$ = %.5f" %lam[k] )
@@ -236,21 +247,26 @@ def main():
         plt.ylabel(r"|u($\rho$)|$^2$", fontsize = 24)
         plt.savefig('solution_%i.pdf'%r)
         plt.close('all')
+
         for j, N in enumerate(integration_points):
             print(r,N)
             lam_theo = [3 + i*4 for i in range(N-1)]
             A, rho = discretize_HO(N, rho_max=r)
+            a, b = np.diag(A), np.diag(A, k=1)
+            lam_b = find_eigen(a,b, 10**-9, max_eigen=3,tol=100**(-10))
             lam, u, c = diag_A(A, tol=10**(-5), max_count= 10**6)
-            max_rel_err[i,j] = np.max(np.abs(lam - lam_theo)/lam_theo)
+            max_rel_err[i,j,0] = np.max(np.abs(lam - lam_theo)/lam_theo)
+            max_rel_err[i,j,1] = np.max(np.abs(lam_b - lam_theo[:3])/lam_theo[:3])
             print("count: %i" %c)
 
     plt.figure(figsize=(10,10))
     for i in range(len(rho_max)):
-        plt.plot(integration_points, max_rel_err[i], label=r"$\rho_{max}$ = " + str(rho_max[i]))
+        plt.plot(integration_points, max_rel_err[i, : , 0], label=r"Jacobi; $\rho_{max}$ = " + str(rho_max[i]))
+        plt.plot(integration_points, max_rel_err[i, : , 1], label=r"Bisect; $\rho_{max}$ = " + str(rho_max[i]))
     plt.legend(loc = 'best', fontsize = 24)
     plt.xlabel(r"N", fontsize = 24)
     plt.ylabel(r"max$\frac{|\lambda-\lambda_{theo}|}{\lambda_{theo}}$", fontsize = 24)
-    plt.savefig('error.pdf')
+    plt.savefig('error_jacobi_vs_bisect.pdf')
     
 def test_eigen():
     A, rho = discretize_HO(100,0,10)
@@ -260,7 +276,7 @@ def test_eigen():
     print(lam)
 
 if __name__ == '__main__':
-    test_eigen()
-    #main()
+    #test_eigen()
+    main()
 
 #%%
