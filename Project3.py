@@ -8,7 +8,7 @@ from numpy.polynomial import legendre, laguerre
 from scipy.special import roots_genlaguerre, eval_genlaguerre
 from numpy.linalg import inv
 from time import perf_counter
-
+import pandas as pd
 #%%
 
 def returnroots (N):
@@ -98,8 +98,7 @@ def radial_integration(N):
                                             integrand_radial(x[i], x[j], t[k], t[l], p[m], p[n], gen_lag=False))
     return transformation * integral
 
-theory = 5*np.pi**2/16**2
-print(radial_integration(8), theory)
+
 #%%
 
 def norm(x, y, z):
@@ -137,8 +136,20 @@ def brutforce_mc(samples, cutoff, cycles):
         result[i] = V*np.mean(integrand(*points))
     return np.mean(result), np.var(result)
 
-print(brutforce_mc(10**6,10 ,100), theory)
+theory = 5*np.pi**2/16**2
 
+N = np.arange(2,17, 2)
+lenN = len(N)
+toi_laguerre = pd.DataFrame(data=np.zeros(( lenN, 4)),columns=["N", "time", "I", "rel_err"], dtype=np.float64)
+toi_laguerre["N"] = N
+print (toi_laguerre)
+for i, n in enumerate(N):
+    start = perf_counter
+    toi_laguerre["I"][i] = radial_integration(n)
+    toi_laguerre["time"][i] = perf_counter -start
+    toi_laguerre["rel_err"][i] = np.abs( toi_laguerre["I"][i] - theory)/theory
+print(toi_laguerre)
+toi_laguerre.to_csv("laguerre.csv")
 
 
 
