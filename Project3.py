@@ -30,6 +30,8 @@ def L_function (N):
     weights = 2 * L_invers[0,:]   
     return  weights  , roots  
 
+#%%
+
 def GaussLaguerre(N):
     """
     function to return roots and weights for Gauss-Laguerre integration
@@ -52,6 +54,84 @@ def GaussLaguerre(N):
             coeff[j] = 0
     L_inv = inv(L)
     return   L_inv[0,:], roots
+
+
+#%%
+#defines function to be integrated
+def function(N,x1,y1,z1,x2,y2,z2):
+    if np.sqrt((x1 - x2)**2 + (y1 - y2)**2+ (z1 - z2)**2 ) < 0.000001:
+        f = 0
+
+    else:
+        f = np.exp(-4 * (np.sqrt(x1**2 + y1**2 + z1**2) + np.sqrt(x2**2 + y2**2 + z2**2))) * 1 / (np.sqrt((x1 - x2)**2 + (y1 - y2)**2+ (z1 - z2)**2 ))
+
+    return f
+#%%
+#function executing the integral
+#summation over all possible combinations of chosen rootpoints for each variable
+#And also sums over all possibla factors of weights
+def integral(N):
+    sum = 0
+
+    x1 = y1 = z1 = x2 = y2 = z2 = returnroots(N)
+
+    weights = L_function(N)
+    
+    for i in range(N):
+        for j in range(N):
+            for k in range(N):
+                for l in range(N):
+                    for m in range(N):
+                        for n in range(N):
+                            sum += weights[i] * weights[j] * weights[k] * weights[l] * weights[m] * weights[n] * function(N,x1[i],y1[j],z1[k],x2[l],y2[m],z2[n])
+    return sum
+
+integral(2)
+
+
+#%%
+#Function to be integrated with change of variables
+def changedfunction(N,x1,y1,z1,x2,y2,z2,a,b): 
+
+    r1 = (b - a) / 2 * x1 + (b + a) / 2
+    s1 = (b - a) / 2 * y1 + (b + a) / 2
+    t1 = (b - a) / 2 * z1 + (b + a) / 2
+    
+    r2 = (b - a) / 2 * x2 + (b + a) / 2
+    s2 = (b - a) / 2 * y2 + (b + a) / 2
+    t2 = (b - a) / 2 * z2 + (b + a) / 2
+
+    if np.sqrt((r1 - r2)**2 + (s1 - s2)**2+ (t1 - t2)**2 ) < 0.00001:
+        f = 0
+    else:
+        f = np.exp(-4 * np.sqrt(r1**2 + s1**2 + t1**2) + np.sqrt(r2**2 + s2**2 + t2**2)) * 1 / (np.sqrt((r1 - r2)**2 + (s1 - s2)**2+ (t1 - t2)**2 ))
+
+    return f
+
+#%%
+#Integration function with borders a and b 
+#Notice: a is lower border!!
+def newintegral(N,a,b):
+    sum = 0
+
+    x1 = y1 = z1 = x2 = y2 = z2 = returnroots(N)
+
+    weights = L_function(N)
+    
+    for i in range(N):
+        for j in range(N):
+            for k in range(N):
+                for l in range(N):
+                    for m in range(N):
+                        for n in range(N):
+
+                            value = weights[i] * weights[j] * weights[k] * weights[l] * weights[m] * weights[n] * changedfunction(N,x1[i],y1[j],z1[k],x2[l],y2[m],z2[n],a,b)
+
+                            sum += value
+    return sum * (b-a) / 2
+
+
+
 
 
 def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False, cutoff = 10**-5):
