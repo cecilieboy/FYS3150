@@ -238,7 +238,7 @@ samples = [10**i for i in range(3,6)]
 cutoff = np.linspace(1,15,10)
 cycles = [1, 10, 100]
 index = 0
-toi_mc = pd.DataFrame(data=np.zeros(( lenN, 8)),
+toi_mc = pd.DataFrame(data=np.zeros(( len(samples)*len(cutoff)*len(cycles), 8)),
             columns=["samples","cutoff", "cycles", "time", "I","var_mc","var_t", "rel_err"], dtype=np.float64)
 
 for s in samples:
