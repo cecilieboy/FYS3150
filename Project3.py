@@ -220,7 +220,7 @@ def brutforce_mc(samples, cutoff, cycles):
     return np.mean(result), np.var(result), np.max(var_theo)
 
 theory = 5*np.pi**2/16**2
-
+"""
 N = np.arange(2,19, 2)
 lenN = len(N)
 toi_laguerre = pd.DataFrame(data=np.zeros(( lenN, 4)),columns=["N", "time", "I", "rel_err"], dtype=np.float64)
@@ -240,7 +240,7 @@ cycles = [1, 10, 100]
 index = 0
 toi_mc = pd.DataFrame(data=np.zeros(( len(samples)*len(cutoff)*len(cycles), 8)),
             columns=["samples","cutoff", "cycles", "time", "I","var_mc","var_t", "rel_err"], dtype=np.float64)
-
+"""
 for s in samples:
     for cu in cutoff:
         for cy in cycles:
@@ -254,9 +254,9 @@ for s in samples:
             time = perf_counter() - start
 
             toi_mc["I"].iloc[index] = I
-            toi_mc["var_mc"] = var_mc
-            toi_mc["var_t"] = var_t
-            toi_mc["rel_err"] = np.abs(I-theory)/theory
+            toi_mc["var_mc"].iloc[index] = var_mc
+            toi_mc["var_t"].iloc[index] = var_t
+            toi_mc["rel_err"].iloc[index] = np.abs(I-theory)/theory
             index += 1
 toi_mc.to_csv("brutforce_mc.csv")
 #%%
