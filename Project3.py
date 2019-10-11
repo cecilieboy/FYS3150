@@ -7,6 +7,7 @@ from scipy.special import legendre
 from numpy.polynomial import legendre, laguerre
 from scipy.special import roots_genlaguerre, eval_genlaguerre
 from numpy.linalg import inv
+from time import perf_counter
 
 #%%
 
@@ -33,6 +34,7 @@ def GaussLaguerre(N):
     """
     function to return roots and weights for Gauss-Laguerre integration
     with N mesh points
+    no multiplication for weights for Laguerre!
     """
     #initialize coeffitents for Laguerre series
     coeff = np.zeros(N+1)
@@ -49,7 +51,7 @@ def GaussLaguerre(N):
             L[i, j] = laguerre.lagval(roots[i], coeff)
             coeff[j] = 0
     L_inv = inv(L)
-    return   2* L_inv[0,:], roots
+    return   L_inv[0,:], roots
 
 
 def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False, cutoff = 10**-5):
@@ -79,12 +81,11 @@ def radial_integration(N):
     use legandre polynomials for other; transformation of integralbounds 
     s -> pi*(p + 1); ds = pi dp
     """
-    transformation = 1#np.pi ** 2 / 4**2
+    transformation = np.pi ** 2 / 4**2
     weights_r, r = GaussLaguerre(N)
     x  = r / 4
-    weights_r /= 4
     weights_t, t = L_function(N)
-    weights_p, p = np.pi*weights_t,  np.pi*( t + 1)
+    weights_p, p = weights_t,  np.pi*( t + 1)
 
     integral  = 0
     for i in range(N):
@@ -136,7 +137,7 @@ def brutforce_mc(samples, cutoff, cycles):
         result[i] = V*np.mean(integrand(*points))
     return np.mean(result), np.var(result)
 
-print(brutforce_mc(10**6,5 ,100), theory)
+print(brutforce_mc(10**6,10 ,100), theory)
 
 
 
