@@ -1,6 +1,7 @@
 
 
 #%%
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.special import legendre
 from numpy.polynomial import legendre, laguerre
@@ -39,7 +40,7 @@ def GaussLaguerre(N):
     coeff[N] = 1
     roots = laguerre.lagroots(coeff)
     #reset coeff.; initalize L matrix
-    L = np.zeros((N,N))
+    L = np.zeros((N,N), dtype = np.float64)
     coeff = np.zeros(N)
     for i in range(N):
         #fill j-th Laguerre poly with the i-th root.
@@ -51,22 +52,7 @@ def GaussLaguerre(N):
     return   2* L_inv[0,:], roots
 
 
-#%%
-def function(N):
-    x = returnroots(N)
-    f = x**2
-    return f
-#%%
-def integral(N):
-    sum = 0
-    f = function(N)
-    weights = L_function(N)
-    for i in range(N):
-        value = weights[i] * f[i]
-        sum += value 
-    return sum
-
-def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False):
+def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False, cutoff = 10**-5):
     """
     returns the integrand in radial coordinates
     (r_i might be scaled for proper results, its integrated over cos theta)
@@ -78,9 +64,9 @@ def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False):
         num = 1
     else:
         num = r1**2 * r2**2
-    cos_b = ct1 * ct2 + np.sqrt((1-ct1**2) * (1 - ct2**2)) * np.cos(p1-p2)
-    r12 = np.sqrt( r1**2 + r2**2 - 2 * r1*r2*cos_b )
-    if r12 != 0:
+    cos_b = ct1 * ct2 + np.sqrt((1 - ct1**2) * (1 - ct2**2)) * np.cos(p1 - p2)
+    r12 = np.sqrt( r1**2 + r2**2 - 2 * r1 * r2 * cos_b )
+    if r12 > cutoff:
         return num / r12
     else:
         return 0
@@ -93,29 +79,66 @@ def radial_integration(N):
     use legandre polynomials for other; transformation of integralbounds 
     s -> pi*(p + 1); ds = pi dp
     """
-    transformation = np.pi ** 2 / 4**2
+    transformation = 1#np.pi ** 2 / 4**2
     weights_r, r = GaussLaguerre(N)
     x  = r / 4
+    weights_r /= 4
     weights_t, t = L_function(N)
-    weights_p, p = weights_t, np.pi*( t + 1)
+    weights_p, p = np.pi*weights_t,  np.pi*( t + 1)
 
     integral  = 0
     for i in range(N):
         for j in range(N):
             for k in range(N):
-                for l in range(N):
+                for l in range(N):  
                     for m in range(N):
                         for n in range(N):
                             integral += (weights_r[i]* weights_r[j] * weights_t[k] * weights_t[l]* weights_p[m] * weights_p[n] * 
-                                            integrand_radial(x[i], x[j], t[k], t[l], p[m], p[n]))
+                                            integrand_radial(x[i], x[j], t[k], t[l], p[m], p[n], gen_lag=False))
     return transformation * integral
 
-print(radial_integration(20), 5*np.pi**2/16**2)
-
+theory = 5*np.pi**2/16**2
+print(radial_integration(8), theory)
 #%%
+
+def norm(x, y, z):
+    """
+    vector norm
+    """
+    return np.sqrt(x**2 + y**2 + z**2)
+
+def integrand(x1,x2,y1,y2,z1,z2, cutoff = 10**-5):
+    """
+    integrand function compatible with numpy arrays
+    """
+    r1 = norm(x1, y1, z1)
+    r2 = norm(x2, y2, z2)
+    r12 = norm(x1-x2, y1-y2, z1-z2)
+    if np.min(r12) > cutoff:
+        return np.exp(-4 * (r1 + r2)) / r12
+    else:
+        return 0
+    
 def brutforce_mc(samples, cutoff, cycles):
+    """
+    calculates MC integration with uniform sampling on the 
+    interval [-cutoff, cutoff]^6 -> V (2*cutoff)^6
+    The integral I is approximated cycels-times with 
+    I = V <f>
+    and the variance of the integral is
+    Var(I) = V Var(f)/ cycels
+    """
     result = np.zeros(cycles)
+    V =2**6* cutoff**6
     for i  in range(cycles):
         points = -cutoff + 2*cutoff * np.random.rand(samples * 6)
         points = points.reshape(6,samples)
-        
+        result[i] = V*np.mean(integrand(*points))
+    return np.mean(result), np.var(result)
+
+print(brutforce_mc(10**6,5 ,100), theory)
+
+
+
+
+#%%
