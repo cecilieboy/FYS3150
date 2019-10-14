@@ -220,27 +220,27 @@ def brutforce_mc(samples, cutoff, cycles):
     return np.mean(result), np.var(result), np.max(var_theo)
 
 theory = 5*np.pi**2/16**2
-"""
+
 N = np.arange(2,19, 2)
 lenN = len(N)
 toi_laguerre = pd.DataFrame(data=np.zeros(( lenN, 4)),columns=["N", "time", "I", "rel_err"], dtype=np.float64)
 toi_laguerre["N"].iloc[:] = N
-
+"""
 for i, n in enumerate(N):
     print(n)
     start = perf_counter()
     toi_laguerre["I"].iloc[i] = radial_integration(n)
     toi_laguerre["time"].iloc[i] = perf_counter() -start
     toi_laguerre["rel_err"].iloc[i] = np.abs( toi_laguerre["I"].iloc[i] - theory)/theory
-toi_laguerre.to_csv("laguerre.csv")
-
-samples = [10**i for i in range(3,6)]
-cutoff = np.linspace(1,15,10)
-cycles = [1, 10, 100]
+toi_laguerre.to_csv("Results/laguerre.csv")
+"""
+samples = [10**i for i in range(2,7)]
+cutoff = np.arange(1,11)
+cycles = [ 10, 100, 500]
 index = 0
 toi_mc = pd.DataFrame(data=np.zeros(( len(samples)*len(cutoff)*len(cycles), 8)),
             columns=["samples","cutoff", "cycles", "time", "I","var_mc","var_t", "rel_err"], dtype=np.float64)
-"""
+
 for s in samples:
     for cu in cutoff:
         for cy in cycles:
@@ -251,12 +251,12 @@ for s in samples:
 
             start = perf_counter()
             I, var_mc , var_t = brutforce_mc(s, cu, cy)
-            time = perf_counter() - start
+            toi_mc["time"].iloc[index]= perf_counter() - start
 
             toi_mc["I"].iloc[index] = I
             toi_mc["var_mc"].iloc[index] = var_mc
             toi_mc["var_t"].iloc[index] = var_t
             toi_mc["rel_err"].iloc[index] = np.abs(I-theory)/theory
             index += 1
-toi_mc.to_csv("brutforce_mc.csv")
+toi_mc.to_csv("Results/brutforce_mc.csv")
 #%%
