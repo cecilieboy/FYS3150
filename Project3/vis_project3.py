@@ -20,6 +20,8 @@ def gauss_quad_plots(df_legendre, df_laguerre):
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["rel_err"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("$\\frac{|I-I_T|}{I_T}$", fontsize = 28)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
     plt.legend(loc='best', fontsize = 28)
     plt.savefig("Results/rel_err.pdf")
     del f
@@ -56,6 +58,8 @@ def plots_mc(df, name, err_max = 0.25, var_max = 0.05):
         sns.set(font_scale=2)
         g =sns.heatmap(grid, vmin =err_min,vmax= err_max, cmap ='RdYlGn_r', annot=True, fmt='.3f', cbar = True, cbar_kws={'label':"$\\frac{|I-I_T|}{I_T}$"}, 
                         label='big', xticklabels=["$10^{%i}$" %i for i in range(2,7)], yticklabels=[ str(i) for i in range(1,11)])
+        plt.xlabel("MC Samples", fontsize =28)
+        plt.ylabel("$\Lambda$", fontsize = 28)
         plt.savefig("Results/"+name + "_err"+str(cy)+".pdf")
         del f, g
 
