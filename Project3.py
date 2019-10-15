@@ -71,7 +71,7 @@ def function(N,x1,y1,z1,x2,y2,z2):
 #summation over all possible combinations of chosen rootpoints for each variable
 #And also sums over all possibla factors of weights
 def integral(N):
-    sum = 0
+    summe = 0
 
     x1 = y1 = z1 = x2 = y2 = z2 = returnroots(N)
 
@@ -83,8 +83,8 @@ def integral(N):
                 for l in range(N):
                     for m in range(N):
                         for n in range(N):
-                            sum += weights[i] * weights[j] * weights[k] * weights[l] * weights[m] * weights[n] * function(N,x1[i],y1[j],z1[k],x2[l],y2[m],z2[n])
-    return sum
+                            summe += weights[i] * weights[j] * weights[k] * weights[l] * weights[m] * weights[n] * function(N,x1[i],y1[j],z1[k],x2[l],y2[m],z2[n])
+    return summe
 
 integral(2)
 
@@ -112,7 +112,7 @@ def changedfunction(N,x1,y1,z1,x2,y2,z2,a,b):
 #Integration function with borders a and b 
 #Notice: a is lower border!!
 def newintegral(N,a,b):
-    sum = 0
+    summe = 0
 
     x1 = y1 = z1 = x2 = y2 = z2 = returnroots(N)
 
@@ -127,11 +127,13 @@ def newintegral(N,a,b):
 
                             value = weights[i] * weights[j] * weights[k] * weights[l] * weights[m] * weights[n] * changedfunction(N,x1[i],y1[j],z1[k],x2[l],y2[m],z2[n],a,b)
 
-                            sum += value
-    return sum * (b-a) / 2
+                            summe += value
+    return summe * ((b-a) / 2)**6
+
+newintegral(5,-3,3)
 
 
-
+#%%
 
 
 def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False, cutoff = 10**-5):
@@ -209,54 +211,31 @@ def brutforce_mc(samples, cutoff, cycles):
     Var(I) = V Var(f)/ cycels
     """
     result = np.zeros(cycles)
-    var_theo = np.zeros(cycles)
     V =2**6* cutoff**6
     for i  in range(cycles):
         points = -cutoff + 2*cutoff * np.random.rand(samples * 6)
         points = points.reshape(6,samples)
-        I = integrand(*points)
-        result[i] = V*np.mean(I)
-        var_theo[i] = V**2 * np.var(I)/samples 
-    return np.mean(result), np.var(result), np.max(var_theo)
+        result[i] = V*np.mean(integrand(*points))
+    return np.mean(result), np.var(result)
 
 theory = 5*np.pi**2/16**2
 
-N = np.arange(2,19, 2)
+N = np.arange(2,17, 2)
 lenN = len(N)
 toi_laguerre = pd.DataFrame(data=np.zeros(( lenN, 4)),columns=["N", "time", "I", "rel_err"], dtype=np.float64)
-toi_laguerre["N"].iloc[:] = N
-
+toi_laguerre["N"] = N
+print (toi_laguerre)
 for i, n in enumerate(N):
-    print(n)
-    start = perf_counter()
-    toi_laguerre["I"].iloc[i] = radial_integration(n)
-    toi_laguerre["time"].iloc[i] = perf_counter() -start
-    toi_laguerre["rel_err"].iloc[i] = np.abs( toi_laguerre["I"].iloc[i] - theory)/theory
+    start = perf_counter
+    toi_laguerre["I"][i] = radial_integration(n)
+    toi_laguerre["time"][i] = perf_counter -start
+    toi_laguerre["rel_err"][i] = np.abs( toi_laguerre["I"][i] - theory)/theory
+print(toi_laguerre)
 toi_laguerre.to_csv("laguerre.csv")
 
-samples = [10**i for i in range(3,6)]
-cutoff = np.linspace(1,15,10)
-cycles = [1, 10, 100]
-index = 0
-toi_mc = pd.DataFrame(data=np.zeros(( lenN, 8)),
-            columns=["samples","cutoff", "cycles", "time", "I","var_mc","var_t", "rel_err"], dtype=np.float64)
 
-for s in samples:
-    for cu in cutoff:
-        for cy in cycles:
-            print (s, cu, cy)
-            toi_mc["samples"].iloc[index] = s
-            toi_mc["cutoff"].iloc[index] = cu
-            toi_mc["cycles"].iloc[index] = cy
 
-            start = perf_counter()
-            I, var_mc , var_t = brutforce_mc(s, cu, cy)
-            time = perf_counter() - start
+#%%
 
-            toi_mc["I"].iloc[index] = I
-            toi_mc["var_mc"] = var_mc
-            toi_mc["var_t"] = var_t
-            toi_mc["rel_err"] = np.abs(I-theory)/theory
-            index += 1
-toi_mc.to_csv("brutforce_mc.csv")
+
 #%%
