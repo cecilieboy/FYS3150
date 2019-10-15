@@ -11,6 +11,8 @@ def gauss_quad_plots(df_legendre, df_laguerre):
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["time"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("t in s", fontsize = 28)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
     plt.legend(loc='best', fontsize = 28)
     plt.savefig("Results/time.pdf")
     del f
