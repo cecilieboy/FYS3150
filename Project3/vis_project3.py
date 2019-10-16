@@ -1,7 +1,7 @@
 import pandas as pd 
 import seaborn as sns 
 import matplotlib.pyplot as plt 
-
+import numpy as np
 
 
 
@@ -11,16 +11,23 @@ def gauss_quad_plots(df_legendre, df_laguerre):
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["time"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("t in s", fontsize = 28)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
     plt.legend(loc='best', fontsize = 28)
+    plt.subplots_adjust(left=0.12, right=0.97, top=0.97, bottom=0.1)
     plt.savefig("Results/time.pdf")
     del f
 
+    max_rel =max([ df_laguerre["rel_err"].max()])#, df_legendre["rel_err"].max])
     f =plt.figure(figsize=(10,10))
     #plt.plot(df_legendre["N"].to_numpy(), df_legendre["rel_err"].to_numpy(), label = 'Legendre')
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["rel_err"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("$\\frac{|I-I_T|}{I_T}$", fontsize = 28)
-    plt.legend(loc='best', fontsize = 28)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.legend(loc='best', fontsize = 28)    
+    plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
     plt.savefig("Results/rel_err.pdf")
     del f
 
@@ -39,6 +46,9 @@ def plots_mc(df, name, err_max = 0.25, var_max = 0.05):
 
     plt.xlabel("MC samples", fontsize = 28)
     plt.ylabel("t in s", fontsize = 28)
+    plt.xticks(ticks=np.array([10**i for i in range(2,7)]), labels=["$10^{%i}$" %i for i in range(2,7)],fontsize=24)
+    plt.yticks(fontsize=24)
+    plt.subplots_adjust(left=0.12, right=0.97, top=0.97, bottom=0.1)
     plt.legend(title ='Validation cycles' , loc='best', fontsize = 28)
     plt.savefig("Results/"+ name+"_time.pdf")
     del f
@@ -56,6 +66,9 @@ def plots_mc(df, name, err_max = 0.25, var_max = 0.05):
         sns.set(font_scale=2)
         g =sns.heatmap(grid, vmin =err_min,vmax= err_max, cmap ='RdYlGn_r', annot=True, fmt='.3f', cbar = True, cbar_kws={'label':"$\\frac{|I-I_T|}{I_T}$"}, 
                         label='big', xticklabels=["$10^{%i}$" %i for i in range(2,7)], yticklabels=[ str(i) for i in range(1,11)])
+        plt.xlabel("MC Samples", fontsize =28)
+        plt.ylabel("$\Lambda$", fontsize = 28)
+        plt.subplots_adjust(left=0.1, right=0.92, top=0.97, bottom=0.1)
         plt.savefig("Results/"+name + "_err"+str(cy)+".pdf")
         del f, g
 
@@ -67,6 +80,7 @@ def plots_mc(df, name, err_max = 0.25, var_max = 0.05):
                             xticklabels=["$10^{%i}$" %i for i in range(2,7)], yticklabels=[ str(i) for i in range(1,11)])
         plt.xlabel("MC Samples", fontsize =28)
         plt.ylabel("$\Lambda$", fontsize = 28)
+        plt.subplots_adjust(left=0.1, right=0.95, top=0.97, bottom=0.1)
         plt.savefig("Results/"+name + "_var"+str(cy)+".pdf")
         del f, g
 
