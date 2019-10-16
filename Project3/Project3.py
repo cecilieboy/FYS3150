@@ -260,3 +260,49 @@ for s in samples:
             index += 1
 toi_mc.to_csv("Results/brutforce_mc.csv")
 #%%
+
+#defines the random variables scaled with the right borders for r, ct and p
+#WATCH: what should the integral at the end be divided by??
+def exp_mc(N):
+    r1 = np.random.exponential(1,N)
+    r2 = np.random.exponential(1,N)
+    ct1 = np.zeros(N)
+    for i in range(N): ct1[i] = (random.random() * 2) - 1
+    ct2 = np.zeros(N)
+    for i in range(N): ct2[i] = (random.random() * 2) - 1
+    p1 = np.zeros(N) 
+    for i in range(N): p1[i] = (random.random()) * 2 * np.pi
+    p2 = np.zeros(N) 
+    for i in range(N): p2[i] = (random.random()) * 2 * np.pi
+    
+    integral = 0 
+    
+    for j in range(N):
+        integral += integrand_radial(r1[i],r2[i],ct1[i],ct2[i],p1[i],p2[i])
+        
+    return integral / N
+                            
+#%%
+
+def main():
+    
+    nmb_samples = [10**2,10**3] 
+    nmb_calls = 100
+    
+    results = np.zeros((len(nmb_samples),nmb_calls))
+
+    
+    for i in range(len(nmb_samples)):
+        for j in range(nmb_calls):
+            results[i,j] = exp_mc(nmb_samples[i])
+    
+    mean_int = np.zeros(len(nmb_samples))
+    
+    for n in range(len(nmb_samples)):
+        mean_int[n] = np.mean(results[n,:])
+        
+    print(mean_int)
+    Data = {'mean of integrals':mean_int,'Samples(N)':nmb_samples}
+        
+    data_exp_mc = pd.DataFrame(Data)
+    print(data_exp_mc)
