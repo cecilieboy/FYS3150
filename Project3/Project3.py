@@ -9,8 +9,9 @@ from scipy.special import roots_genlaguerre, eval_genlaguerre
 from numpy.linalg import inv
 from time import perf_counter
 import pandas as pd
+import random
+from tqdm import trange
 #%%
-
 def returnroots (N):
     coeff = np.zeros(N+1)
     coeff[N] = 1
@@ -306,3 +307,4 @@ def main():
         
     data_exp_mc = pd.DataFrame(Data)
     print(data_exp_mc)
+
