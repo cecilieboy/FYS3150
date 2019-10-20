@@ -1,13 +1,15 @@
+#%%
+
 import pandas as pd 
 import seaborn as sns 
 import matplotlib.pyplot as plt 
 import numpy as np
 
 
-
+#%%
 def gauss_quad_plots(df_legendre, df_laguerre):
     f =plt.figure(figsize=(10,10))
-    #plt.plot(df_legendre["N"].to_numpy(), df_legendre["time"].to_numpy(), label = 'Legendre')
+    plt.plot(df_legendre["N"].to_numpy(), df_legendre["time"].to_numpy(), label = 'Legendre')
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["time"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("t in s", fontsize = 28)
@@ -20,7 +22,7 @@ def gauss_quad_plots(df_legendre, df_laguerre):
 
     max_rel =max([ df_laguerre["rel_err"].max()])#, df_legendre["rel_err"].max])
     f =plt.figure(figsize=(10,10))
-    #plt.plot(df_legendre["N"].to_numpy(), df_legendre["rel_err"].to_numpy(), label = 'Legendre')
+    plt.plot(df_legendre["N"].to_numpy(), df_legendre["rel_err"].to_numpy(), label = 'Legendre')
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["rel_err"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("$\\frac{|I-I_T|}{I_T}$", fontsize = 28)
@@ -85,8 +87,96 @@ def plots_mc(df, name, err_max = 0.25, var_max = 0.05):
         del f, g
 
 df_laguerre = pd.read_csv("Results/laguerre.csv")
-#df_legendre = pd.read_csv("Results/legendre.csv")
+df_legendre = pd.read_csv("Results/legendre.csv")
 df_brutforce_mc = pd.read_csv("Results/brutforce_mc.csv")
+df_exp_mc_10 = pd.read_csv('Results/main_results_10.csv')
+df_exp_mc_100 = pd.read_csv('Results/main_results_100.csv')
+#df_exp_mc_200 = pd.read_csv('Results/main_results_200.csv')
 
-gauss_quad_plots(None, df_laguerre)
+gauss_quad_plots(df_legendre, df_laguerre)
 plots_mc(df_brutforce_mc, "brutforce")
+
+#%% 
+#Visualization Importance sampling MC
+
+#Time plot:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+plot_time = pd.read_csv("Results/main_results_10.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='Time',ax=ax,label = 10)
+plot_time = pd.read_csv("Results/main_results_100.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='Time', color='red', ax=ax,label = 100)
+plot_time = pd.read_csv("Results/main_results_200.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='Time', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("t in s", fontsize = 20)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
+plt.savefig("Results/time_ceci_mc.pdf")
+plt.show()
+
+#Rel error plot:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+#ax.set_facecolor('white')
+#fig.patch.set_facecolor('white')
+#ax.patch.set_facecolor('white')
+plot_rel_error = pd.read_csv("Results/main_results_10.csv")
+plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error',ax=ax,label = 10)
+plot_rel_error = pd.read_csv("Results/main_results_100.csv")
+plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error', color='red', ax=ax,label = 100)
+plot_rel_error = pd.read_csv("Results/main_results_200.csv")
+plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("$\\frac{|I-I_T|}{I_T}$", fontsize = 28)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+#plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
+plt.savefig("Results/Rel_error_ceci_mc.pdf")
+plt.show()
+
+#Variance plot:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+plot_time = pd.read_csv("Results/main_results_10.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='Variance',ax=ax,label = 10)
+plot_time = pd.read_csv("Results/main_results_100.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='Variance', color='red', ax=ax,label = 100)
+plot_time = pd.read_csv("Results/main_results_200.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='Variance', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("Var(I)", fontsize = 20)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.savefig("Results/var_ceci_mc.pdf")
+plt.show()
+
+
+
+#%%
+
+#Time plot:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+plot_time = pd.read_csv("Results/main_results_10.csv")
+plot_time.plot(kind='line',x='Samples(N)',y='Time',ax=ax,label = 10)
+plot_time = pd.read_csv("Results/main_results_100.csv")
+plot_time.plot(kind='line',x='Samples(N)',y='Time', color='red', ax=ax,label = 100)
+plot_time = pd.read_csv("Results/main_results_200.csv")
+plot_time.plot(kind='line',x='Samples(N)',y='Time', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("t in s", fontsize = 20)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
+plt.savefig("Results/time_lin_ceci_mc.pdf")
+plt.show()
+
+
+
+#%%
