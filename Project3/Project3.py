@@ -95,26 +95,6 @@ def newintegral(N,a,b):
 
     return summe * ((b-a) / 2)**6,Time
 
-#%%
-
-N = np.arange(2,19,1)
-Integrals = np.zeros(len(N))
-theo_int = 5 * np.pi**2 / 16**2
-rel_error = np.zeros(len(N))
-Time = np.zeros(len(N))
-for i in trange(len(N)):
-    Integrals[i],Time[i] = newintegral(N[i],-3,3)
-    rel_error[i] = np.abs(Integrals[i] - theo_int) / theo_int
-
-#print(Integrals)
-#print(Time)
-#print(rel_error)
-
-Data = {'N':N,'I':Integrals,'time': Time,  'rel_err': rel_error}
-      
-data_legendre = pd.DataFrame(Data)
-    
-data_legendre.to_csv('Results/legendre.csv')
 
 #%%
 
@@ -133,10 +113,7 @@ def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False, cutoff = 10**-5):
         num = r1**2 * r2**2
     cos_b = ct1 * ct2 + np.sqrt((1 - ct1**2) * (1 - ct2**2)) * np.cos(p1 - p2)
     r12 = np.sqrt( r1**2 + r2**2 - 2 * r1 * r2 * cos_b )
-    if r12 > cutoff:
-        return num / r12
-    else:
-        return 0
+    return np.where(r12 > cutoff,num / r12, 0)
 
 def radial_integration(N):
     """
@@ -202,7 +179,7 @@ def brutforce_mc(samples, cutoff, cycles):
     return np.mean(result), np.var(result) 
 
 
-#toi_mc.to_csv("Results/brutforce_mc.csv")
+
 
 #%%
 #defines the random variables scaled with the right borders for r, ct and p
@@ -229,7 +206,71 @@ def exp_mc(N):
 #%%
 
 def main():
+    theo_int = 5 * np.pi**2 / 16**2
+
+    #################################################################################################################
+    #Legendre Integration
+    #################################################################################################################
+    N = np.arange(2,19,1)
+    Integrals = np.zeros(len(N))
+    rel_error = np.zeros(len(N))
+    Time = np.zeros(len(N))
     
+    for i in trange(len(N)):
+        Integrals[i],Time[i] = newintegral(N[i],-3,3)
+        rel_error[i] = np.abs(Integrals[i] - theo_int) / theo_int
+    
+    Data = {'N':N,'I':Integrals,'time': Time,  'rel_err': rel_error} 
+    data_legendre = pd.DataFrame(Data) 
+    data_legendre.to_csv('Results/legendre.csv')
+
+    #################################################################################################################
+    #Laguerre Integration
+    #################################################################################################################
+    N = np.arange(2,17, 2)
+    lenN = len(N)
+    toi_laguerre = pd.DataFrame(data=np.zeros(( lenN, 4)),columns=["N", "time", "I", "rel_err"], dtype=np.float64)
+    toi_laguerre["N"].iloc[:] = N
+    
+    for i, n in enumerate(N):
+        start = perf_counter()
+        toi_laguerre["I"].iloc[i] = radial_integration(n)
+        toi_laguerre["time"].iloc[i] = perf_counter() -start
+        toi_laguerre["rel_err"].iloc[i] = np.abs( toi_laguerre["I"].iloc[i] - theo_int)/theo_int
+    toi_laguerre.to_csv("Results/laguerre.csv")
+    
+    #################################################################################################################
+    #Brute-force MC
+    #################################################################################################################
+    samples = [10**i for i in range(2,7)]
+    cutoff = np.arange(1,11)
+    cycles = [ 10, 100, 500]
+    index = 0
+    toi_mc = pd.DataFrame(data=np.zeros(( len(samples)*len(cutoff)*len(cycles), 8)),
+                columns=["samples","cutoff", "cycles", "time", "I","var_mc","var_t", "rel_err"], dtype=np.float64)
+
+    for s in samples:
+        for cu in cutoff:
+            for cy in cycles:
+                print (s, cu, cy)
+                toi_mc["samples"].iloc[index] = s
+                toi_mc["cutoff"].iloc[index] = cu
+                toi_mc["cycles"].iloc[index] = cy
+
+                start = perf_counter()
+                I, var_mc , var_t = brutforce_mc(s, cu, cy)
+                toi_mc["time"].iloc[index]= perf_counter() - start
+
+                toi_mc["I"].iloc[index] = I
+                toi_mc["var_mc"].iloc[index] = var_mc
+                toi_mc["var_t"].iloc[index] = var_t
+                toi_mc["rel_err"].iloc[index] = np.abs(I-theo_int)/theo_int
+                index += 1
+    toi_mc.to_csv("Results/brutforce_mc.csv")
+    
+    #################################################################################################################
+    #Importance sampling
+    #################################################################################################################
     nmb_samples = [10**2,10**3,10**4,10**5,10**6] 
     nmb_calls = 10
     theo_int = 5 * np.pi**2 / 16**2
@@ -257,46 +298,7 @@ if __name__ == '__main__':
 
  #%%
 
-    theory = 5*np.pi**2/16**2
-
-    N = np.arange(2,17, 2)
-    lenN = len(N)
-    toi_laguerre = pd.DataFrame(data=np.zeros(( lenN, 4)),columns=["N", "time", "I", "rel_err"], dtype=np.float64)
-
-    toi_laguerre["N"].iloc[:] = N
-    """
-    for i, n in enumerate(N):
-        print(n)
-        start = perf_counter()
-        toi_laguerre["I"].iloc[i] = radial_integration(n)
-        toi_laguerre["time"].iloc[i] = perf_counter() -start
-        toi_laguerre["rel_err"].iloc[i] = np.abs( toi_laguerre["I"].iloc[i] - theory)/theory
-    toi_laguerre.to_csv("Results/laguerre.csv")
-    """
-    samples = [10**i for i in range(2,7)]
-    cutoff = np.arange(1,11)
-    cycles = [ 10, 100, 500]
-    index = 0
-    toi_mc = pd.DataFrame(data=np.zeros(( len(samples)*len(cutoff)*len(cycles), 8)),
-                columns=["samples","cutoff", "cycles", "time", "I","var_mc","var_t", "rel_err"], dtype=np.float64)
-
-    for s in samples:
-        for cu in cutoff:
-            for cy in cycles:
-                print (s, cu, cy)
-                toi_mc["samples"].iloc[index] = s
-                toi_mc["cutoff"].iloc[index] = cu
-                toi_mc["cycles"].iloc[index] = cy
-
-                start = perf_counter()
-                I, var_mc , var_t = brutforce_mc(s, cu, cy)
-                toi_mc["time"].iloc[index]= perf_counter() - start
-
-                toi_mc["I"].iloc[index] = I
-                toi_mc["var_mc"].iloc[index] = var_mc
-                toi_mc["var_t"].iloc[index] = var_t
-                toi_mc["rel_err"].iloc[index] = np.abs(I-theory)/theory
-                index += 1
+    
 
 
 #%%
