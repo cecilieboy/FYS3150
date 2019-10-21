@@ -103,19 +103,21 @@ plots_mc(df_brutforce_mc, "brutforce")
 fig, ax = plt.subplots(figsize=(10, 10))
 ax = plt.gca()
 plot_time = pd.read_csv("Results/main_results_10.csv")
-plot_time.plot(kind='line',x='log10_Samples(N)',y='Time',ax=ax,label = 10)
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Time',ax=ax,label = 10)
 plot_time = pd.read_csv("Results/main_results_100.csv")
-plot_time.plot(kind='line',x='log10_Samples(N)',y='Time', color='red', ax=ax,label = 100)
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Time', color='red', ax=ax,label = 100)
 plot_time = pd.read_csv("Results/main_results_200.csv")
-plot_time.plot(kind='line',x='log10_Samples(N)',y='Time', color='green', ax=ax,label = 200)
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Time', color='green', ax=ax,label = 200)
 plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
-plt.ylabel("t in s", fontsize = 20)
-plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.ylabel("$log_{10}$(t) (in s)", fontsize = 20)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20) 
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
 plt.savefig("Results/time_ceci_mc.pdf")
 plt.show()
+
+#%%
 
 #Rel error plot:
 fig, ax = plt.subplots(figsize=(10, 10))
@@ -130,7 +132,7 @@ plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error', color='
 plot_rel_error = pd.read_csv("Results/main_results_200.csv")
 plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error', color='green', ax=ax,label = 200)
 plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
-plt.ylabel("$\\frac{|I-I_T|}{I_T}$", fontsize = 28)
+plt.ylabel("$log_{10}(\\frac{|I-I_T|}{I_T})$", fontsize = 28)
 plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
@@ -142,13 +144,13 @@ plt.show()
 fig, ax = plt.subplots(figsize=(10, 10))
 ax = plt.gca()
 plot_time = pd.read_csv("Results/main_results_10.csv")
-plot_time.plot(kind='line',x='log10_Samples(N)',y='Variance',ax=ax,label = 10)
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Var',ax=ax,label = 10)
 plot_time = pd.read_csv("Results/main_results_100.csv")
-plot_time.plot(kind='line',x='log10_Samples(N)',y='Variance', color='red', ax=ax,label = 100)
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Var', color='red', ax=ax,label = 100)
 plot_time = pd.read_csv("Results/main_results_200.csv")
-plot_time.plot(kind='line',x='log10_Samples(N)',y='Variance', color='green', ax=ax,label = 200)
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Var', color='green', ax=ax,label = 200)
 plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
-plt.ylabel("Var(I)", fontsize = 20)
+plt.ylabel("$log_{10}$(Var(I))", fontsize = 20)
 plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
@@ -159,7 +161,7 @@ plt.show()
 
 #%%
 
-#Time plot:
+#Time plot against normal axes:
 fig, ax = plt.subplots(figsize=(10, 10))
 ax = plt.gca()
 plot_time = pd.read_csv("Results/main_results_10.csv")
@@ -175,6 +177,36 @@ plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
 plt.savefig("Results/time_lin_ceci_mc.pdf")
+plt.show()
+
+
+
+#%%
+
+N = pd.read_txt('time_array', index_col=0)
+
+print(N)
+
+t = np.arange(0.01, 10.0, 0.01)
+data1 = np.exp(t)
+data2 = np.sin(2 * np.pi * t)
+
+fig, ax1 = plt.subplots()
+
+#color = 'tab:red'
+ax1.set_xlabel('MC Samples')
+ax1.set_ylabel('t in s', color=color)
+ax1.plot(t, data1, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.set_ylabel('', color=color)  # we already handled the x-label with ax1
+ax2.plot(t, data2, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.show()
 
 

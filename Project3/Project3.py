@@ -13,7 +13,11 @@ import random
 from tqdm import trange
 import time
 #%%
+ 
 def returnroots (N):
+    """
+    function returns roots for Gauss-Legendre integration
+    """
     coeff = np.zeros(N+1)
     coeff[N] = 1
     roots = legendre.legroots(coeff )
@@ -21,6 +25,9 @@ def returnroots (N):
 #%%
 
 def L_function (N):
+    """
+    function returns roots and weigths for Gauss-Legendre integration
+    """
     L = np.zeros((N, N))
     roots = returnroots(N)
     for i in range(N):
@@ -59,62 +66,55 @@ def GaussLaguerre(N):
 
 
 #%%
-#defines function to be integrated
 def function(N,x1,y1,z1,x2,y2,z2):
+    """
+    returns integrand in cartesian coordinates. For singular points: returns 0
+    """
     if np.sqrt((x1 - x2)**2 + (y1 - y2)**2+ (z1 - z2)**2 ) == 0:
         f = 0
-
     else:
         f = np.exp(-4 * (np.sqrt(x1**2 + y1**2 + z1**2) + np.sqrt(x2**2 + y2**2 + z2**2))) * 1 / (np.sqrt((x1 - x2)**2 + (y1 - y2)**2+ (z1 - z2)**2 ))
-
     return f
 #%%
 #Integration function with borders a and b 
 #Notice: a is lower border!!
 def newintegral(N,a,b):
+    """
+    integrates in cartesian coordinates. arguments of function are the roots
+    multiplied by (b - a)/2 where a is the lower integration border and b the upper. 
+    These borders are chosen to be symmetric (a =-b)
+    """
     summe = 0
-
     x1 = y1 = z1 = x2 = y2 = z2 = returnroots(N) * (b - a) / 2
-
     weights,_ = L_function(N)
-
     start = time.time()
-    
     for i in range(N):
         for j in range(N):
             for k in range(N):
                 for l in range(N):
                     for m in range(N):
                         for n in range(N):
-
                             value = value = weights[i] * weights[j] * weights[k] * weights[l] * weights[m] * weights[n] * function(N,x1[i],y1[j],z1[k],x2[l],y2[m],z2[n])
                             summe += value
-    
-    
     Time =  time.time() - start
-
     return summe * ((b-a) / 2)**6,Time
 
 #%%
-
-N = np.arange(2,19,1)
-Integrals = np.zeros(len(N))
-theo_int = 5 * np.pi**2 / 16**2
-rel_error = np.zeros(len(N))
-Time = np.zeros(len(N))
-for i in trange(len(N)):
-    Integrals[i],Time[i] = newintegral(N[i],-3,3)
-    rel_error[i] = np.abs(Integrals[i] - theo_int) / theo_int
-
+######################## Evaluation of integrals ######################
+#N = np.arange(2,19,2)
+#Integrals = np.zeros(len(N))
+#theo_int = 5 * np.pi**2 / 16**2
+#rel_error = np.zeros(len(N))
+#Time = np.zeros(len(N))
+#for i in trange(len(N)):
+#    Integrals[i],Time[i] = newintegral(N[i],-5,5)
+#    rel_error[i] = np.abs(Integrals[i] - theo_int) / theo_int
 #print(Integrals)
 #print(Time)
 #print(rel_error)
-
-Data = {'N':N,'I':Integrals,'time': Time,  'rel_err': rel_error}
-      
-data_legendre = pd.DataFrame(Data)
-    
-data_legendre.to_csv('Results/legendre.csv')
+#Data = {'N':N,'I':Integrals,'time': Time,  'rel_err': rel_error}
+#data_legendre = pd.DataFrame(Data)   
+#data_legendre.to_csv('Results/legendre_5.csv')
 
 #%%
 
@@ -205,9 +205,12 @@ def brutforce_mc(samples, cutoff, cycles):
 #toi_mc.to_csv("Results/brutforce_mc.csv")
 
 #%%
-#defines the random variables scaled with the right borders for r, ct and p
-#WATCH: what should the integral at the end be divided by??
+
 def exp_mc(N):
+    """
+    integrates radial integrand by using importance sampling.
+    defines the random variables scaled with the right borders for r, ct and p.
+    """
     r1 = np.random.exponential(1,N)
     r2 = np.random.exponential(1,N)
     ct1 = np.zeros(N)
@@ -218,18 +221,19 @@ def exp_mc(N):
     for i in range(N): p1[i] = (random.random()) * 2 * np.pi
     p2 = np.zeros(N) 
     for i in range(N): p2[i] = (random.random()) * 2 * np.pi
-    
+
     integral = 0 
-    
     for i in range(N):
-        integral += integrand_radial(r1[i],r2[i],ct1[i],ct2[i],p1[i],p2[i])
-        
+        integral += integrand_radial(r1[i],r2[i],ct1[i],ct2[i],p1[i],p2[i])  
     return (integral * (4 * np.pi)**2 / 4**5) / N
                         
 #%%
 
 def main():
-    
+    """
+    carries out function:exp_mc for different number of Samples
+    and for a given number of calls. return mean value and variance. 
+    """
     nmb_samples = [10**2,10**3,10**4,10**5,10**6] 
     nmb_calls = 10
     theo_int = 5 * np.pi**2 / 16**2
@@ -248,7 +252,7 @@ def main():
     var_int = (np.var(results,axis = 1))
     rel_err = (np.abs(mean_int - theo_int) / theo_int)
  
-    Data = {'mean of integrals':mean_int,'Samples(N)':nmb_samples,'log10_Samples(N)':np.log10(nmb_samples),'Time': Time, 'Variance': var_int,'log10_Var':np.log10(var_int), 'Relative Error': rel_err,'log10_rel_err':np.log10(rel_err)}
+    Data = {'mean of integrals':mean_int,'Samples(N)':nmb_samples,'log10_Samples(N)':np.log10(nmb_samples),'Time': Time, 'log10_Time':np.log10(Time), 'Variance': var_int,'log10_Var':np.log10(var_int), 'Relative Error': rel_err,'log10_rel_err':np.log10(rel_err)}
     data_exp_mc = pd.DataFrame(Data)
     data_exp_mc.to_csv('Results/main_results_%i.csv'%nmb_calls)
 

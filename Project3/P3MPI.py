@@ -83,6 +83,7 @@ if rank == 0:
     f = open('time_array','a+')
     f.write(str(time.time() - start) + '\t' + str(final_int) +  '\t' + str(N) + '\n')
     f.close()
+    
     #print(Time)
 
 
