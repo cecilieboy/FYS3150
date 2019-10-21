@@ -4,7 +4,12 @@ import pandas as pd
 import seaborn as sns 
 import matplotlib.pyplot as plt 
 import numpy as np
-
+#font size controles
+SMALL_SIZE = 20
+MEDIUM_SIZE = 24
+BIGGER_SIZE = 28
+sns.set_context("paper", rc={"font.size":MEDIUM_SIZE,"axes.titlesize":MEDIUM_SIZE,"axes.labelsize":MEDIUM_SIZE, 'legend.fontsize':MEDIUM_SIZE,
+                 'xticks':SMALL_SIZE, 'yticks':SMALL_SIZE})
 
 #%%
 def gauss_quad_plots(df_legendre, df_laguerre):
@@ -85,6 +90,33 @@ def plots_mc(df, name, err_max = 0.25, var_max = 0.05):
         plt.subplots_adjust(left=0.1, right=0.95, top=0.97, bottom=0.1)
         plt.savefig("Results/"+name + "_var"+str(cy)+".pdf")
         del f, g
+
+def parallel_plots():
+    df_exp_mc_100 = pd.read_csv('Results/main_results_100.csv')
+    df_mc = df_exp_mc_100[["Samples(N)","Time", "mean of integrals", "Variance"]]
+    df_mc = df_mc.rename(columns={"Time":"time sum", "mean of integrals":"I mean", "Samples(N)":"mc" ,"Variance": "I var"})
+    df_mc.insert(0, "threads" , ["original"  for i in df_mc.index.values], True)
+
+    data = np.loadtxt("time_array.txt" )
+    df  = pd.DataFrame(data= data, index=np.arange(0,len(data)), columns=["threads", "time", "I", "mc"])
+    df = df.groupby(["threads", "mc"]).agg({"time":np.sum,
+                                    "I":[np.mean, np.var]})
+    df.columns = [' '.join(col).strip() for col in df.columns.values]
+    df = df.reset_index()
+    
+    df["threads"].where(df["threads"] != 1 , 'vectorized', True)
+    df = df.append(df_mc)
+    
+    plt.figure(figsize=(10,10))
+    sns.lineplot(x="MC Samples", y="Time in s", hue = "Computation",
+                 data=df.rename(columns={"time sum": "Time in s", "mc":"MC Samples", "threads":"Computation"}))
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.savefig("Results/parallel.pdf")
+
+parallel_plots()
 
 df_laguerre = pd.read_csv("Results/laguerre.csv")
 df_legendre = pd.read_csv("Results/legendre.csv")

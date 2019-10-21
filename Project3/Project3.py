@@ -99,6 +99,7 @@ def newintegral(N,a,b):
     Time =  time.time() - start
     return summe * ((b-a) / 2)**6,Time
 
+<<<<<<< HEAD
 #%%
 ######################## Evaluation of integrals ######################
 #N = np.arange(2,19,2)
@@ -115,6 +116,8 @@ def newintegral(N,a,b):
 #Data = {'N':N,'I':Integrals,'time': Time,  'rel_err': rel_error}
 #data_legendre = pd.DataFrame(Data)   
 #data_legendre.to_csv('Results/legendre_5.csv')
+=======
+>>>>>>> f3439c940a95cef8383c8a75dd4baa1ec575ef35
 
 #%%
 
@@ -133,10 +136,7 @@ def integrand_radial(r1, r2, ct1, ct2, p1,p2, gen_lag = False, cutoff = 10**-5):
         num = r1**2 * r2**2
     cos_b = ct1 * ct2 + np.sqrt((1 - ct1**2) * (1 - ct2**2)) * np.cos(p1 - p2)
     r12 = np.sqrt( r1**2 + r2**2 - 2 * r1 * r2 * cos_b )
-    if r12 > cutoff:
-        return num / r12
-    else:
-        return 0
+    return np.where(r12 > cutoff,num / r12, 0)
 
 def radial_integration(N):
     """
@@ -202,7 +202,7 @@ def brutforce_mc(samples, cutoff, cycles):
     return np.mean(result), np.var(result) 
 
 
-#toi_mc.to_csv("Results/brutforce_mc.csv")
+
 
 #%%
 
@@ -230,18 +230,30 @@ def exp_mc(N):
 #%%
 
 def main():
+<<<<<<< HEAD
     """
     carries out function:exp_mc for different number of Samples
     and for a given number of calls. return mean value and variance. 
     """
     nmb_samples = [10**2,10**3,10**4,10**5,10**6] 
     nmb_calls = 10
+=======
+>>>>>>> f3439c940a95cef8383c8a75dd4baa1ec575ef35
     theo_int = 5 * np.pi**2 / 16**2
+
+    #################################################################################################################
+    #Legendre Integration
+    #################################################################################################################
+    N = np.arange(2,19,1)
+    Integrals = np.zeros(len(N))
+    rel_error = np.zeros(len(N))
+    Time = np.zeros(len(N))
     
-    results = np.zeros((len(nmb_samples),nmb_calls))
-    rel_err = np.zeros(len(nmb_samples))
-    Time = np.zeros(len(nmb_samples))
+    for i in trange(len(N)):
+        Integrals[i],Time[i] = newintegral(N[i],-3,3)
+        rel_error[i] = np.abs(Integrals[i] - theo_int) / theo_int
     
+<<<<<<< HEAD
     for i in trange(len(nmb_samples)):
         start = time.time()
         for j in range(nmb_calls):
@@ -262,21 +274,30 @@ if __name__ == '__main__':
  #%%
 
     theory = 5*np.pi**2/16**2
+=======
+    Data = {'N':N,'I':Integrals,'time': Time,  'rel_err': rel_error} 
+    data_legendre = pd.DataFrame(Data) 
+    data_legendre.to_csv('Results/legendre.csv')
+>>>>>>> f3439c940a95cef8383c8a75dd4baa1ec575ef35
 
+    #################################################################################################################
+    #Laguerre Integration
+    #################################################################################################################
     N = np.arange(2,17, 2)
     lenN = len(N)
     toi_laguerre = pd.DataFrame(data=np.zeros(( lenN, 4)),columns=["N", "time", "I", "rel_err"], dtype=np.float64)
-
     toi_laguerre["N"].iloc[:] = N
-    """
+    
     for i, n in enumerate(N):
-        print(n)
         start = perf_counter()
         toi_laguerre["I"].iloc[i] = radial_integration(n)
         toi_laguerre["time"].iloc[i] = perf_counter() -start
-        toi_laguerre["rel_err"].iloc[i] = np.abs( toi_laguerre["I"].iloc[i] - theory)/theory
+        toi_laguerre["rel_err"].iloc[i] = np.abs( toi_laguerre["I"].iloc[i] - theo_int)/theo_int
     toi_laguerre.to_csv("Results/laguerre.csv")
-    """
+    
+    #################################################################################################################
+    #Brute-force MC
+    #################################################################################################################
     samples = [10**i for i in range(2,7)]
     cutoff = np.arange(1,11)
     cycles = [ 10, 100, 500]
@@ -299,8 +320,41 @@ if __name__ == '__main__':
                 toi_mc["I"].iloc[index] = I
                 toi_mc["var_mc"].iloc[index] = var_mc
                 toi_mc["var_t"].iloc[index] = var_t
-                toi_mc["rel_err"].iloc[index] = np.abs(I-theory)/theory
+                toi_mc["rel_err"].iloc[index] = np.abs(I-theo_int)/theo_int
                 index += 1
+    toi_mc.to_csv("Results/brutforce_mc.csv")
+    
+    #################################################################################################################
+    #Importance sampling
+    #################################################################################################################
+    nmb_samples = [10**2,10**3,10**4,10**5,10**6] 
+    nmb_calls = 10
+    theo_int = 5 * np.pi**2 / 16**2
+    
+    results = np.zeros((len(nmb_samples),nmb_calls))
+    rel_err = np.zeros(len(nmb_samples))
+    Time = np.zeros(len(nmb_samples))
+    
+    for i in trange(len(nmb_samples)):
+        start = time.time()
+        for j in range(nmb_calls):
+            results[i,j] = exp_mc(nmb_samples[i])
+        Time[i] =  time.time() - start
+    
+    mean_int = np.mean(results,axis = 1)
+    var_int = (np.var(results,axis = 1))
+    rel_err = (np.abs(mean_int - theo_int) / theo_int)
+ 
+    Data = {'mean of integrals':mean_int,'Samples(N)':nmb_samples,'log10_Samples(N)':np.log10(nmb_samples),'Time': Time, 'Variance': var_int,'log10_Var':np.log10(var_int), 'Relative Error': rel_err,'log10_rel_err':np.log10(rel_err)}
+    data_exp_mc = pd.DataFrame(Data)
+    data_exp_mc.to_csv('Results/main_results_%i.csv'%nmb_calls)
+
+if __name__ == '__main__':
+    main()
+
+ #%%
+
+    
 
 
 #%%
