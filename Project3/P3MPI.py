@@ -24,23 +24,27 @@ comm = MPI.COMM_WORLD
 Size = comm.Get_size()
 rank = comm.Get_rank()
 
-N = int(sys.argv[1])
-n = N // Size
-final_int = 0
+MC_exp = int(sys.argv[1])
+MC_samp = int(sys.argv[2])
+n = MC_samp // Size
+
+    
+final_int = np.zeros(MC_exp)
+ints = np.zeros(MC_exp)
 
 start = time.time()
 
 
+for i in range(MC_exp):
+    ints[i] = integral(n)/MC_samp
 
 
-
-final_int += integral(n) / N 
-final_int = comm.reduce(final_int,op = MPI.SUM,root=0)
+comm.Reduce(ints, final_int, op = MPI.SUM,root=0)
 
 if rank == 0: 
-    print('sum:',final_int)
-    f = open('time_array','a+')
-    f.write(str(Size) + '\t' +str(time.time() - start) + '\t' + str(final_int) +  '\t' + str(N) + '\n')
+    print('sum:',np.mean(final_int))
+    f = open('paralell.txt','a+')
+    f.write(str(Size) + '\t' +str(time.time() - start) + '\t' + str(np.mean(final_int)) +'\t' + str(np.var(final_int)) +  '\t' + str(MC_samp) + '\n')
     f.close()
 
 
