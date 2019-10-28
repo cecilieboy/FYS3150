@@ -1,13 +1,20 @@
+#%%
+
 import pandas as pd 
 import seaborn as sns 
 import matplotlib.pyplot as plt 
 import numpy as np
+#font size controles
+SMALL_SIZE = 20
+MEDIUM_SIZE = 24
+BIGGER_SIZE = 28
+sns.set_context("paper", rc={"font.size":MEDIUM_SIZE,"axes.titlesize":MEDIUM_SIZE,"axes.labelsize":MEDIUM_SIZE, 'legend.fontsize':MEDIUM_SIZE,
+                 'xticks':SMALL_SIZE, 'yticks':SMALL_SIZE})
 
-
-
+#%%
 def gauss_quad_plots(df_legendre, df_laguerre):
     f =plt.figure(figsize=(10,10))
-    #plt.plot(df_legendre["N"].to_numpy(), df_legendre["time"].to_numpy(), label = 'Legendre')
+    plt.plot(df_legendre["N"].to_numpy(), df_legendre["time"].to_numpy(), label = 'Legendre')
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["time"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("t in s", fontsize = 28)
@@ -20,7 +27,7 @@ def gauss_quad_plots(df_legendre, df_laguerre):
 
     max_rel =max([ df_laguerre["rel_err"].max()])#, df_legendre["rel_err"].max])
     f =plt.figure(figsize=(10,10))
-    #plt.plot(df_legendre["N"].to_numpy(), df_legendre["rel_err"].to_numpy(), label = 'Legendre')
+    plt.plot(df_legendre["N"].to_numpy(), df_legendre["rel_err"].to_numpy(), label = 'Legendre')
     plt.plot(df_laguerre["N"].to_numpy(), df_laguerre["rel_err"].to_numpy(), label = 'Laguerre')
     plt.xlabel("N", fontsize = 28)
     plt.ylabel("$\\frac{|I-I_T|}{I_T}$", fontsize = 28)
@@ -84,9 +91,156 @@ def plots_mc(df, name, err_max = 0.25, var_max = 0.05):
         plt.savefig("Results/"+name + "_var"+str(cy)+".pdf")
         del f, g
 
-df_laguerre = pd.read_csv("Results/laguerre.csv")
-#df_legendre = pd.read_csv("Results/legendre.csv")
-df_brutforce_mc = pd.read_csv("Results/brutforce_mc.csv")
+def parallel_plots():
+    df_exp_mc_100 = pd.read_csv('Results/main_results_100.csv')
+    df_mc = df_exp_mc_100[["Samples(N)","Time", "mean of integrals", "Variance"]]
+    df_mc = df_mc.rename(columns={"Time":"time sum", "mean of integrals":"I mean", "Samples(N)":"mc" ,"Variance": "I var"})
+    df_mc.insert(0, "threads" , ["original"  for i in df_mc.index.values], True)
 
-gauss_quad_plots(None, df_laguerre)
+    data = np.loadtxt("time_array.txt" )
+    df  = pd.DataFrame(data= data, index=np.arange(0,len(data)), columns=["threads", "time", "I", "mc"])
+    df = df.groupby(["threads", "mc"]).agg({"time":np.sum,
+                                    "I":[np.mean, np.var]})
+    df.columns = [' '.join(col).strip() for col in df.columns.values]
+    df = df.reset_index()
+    
+    df["threads"].where(df["threads"] != 1 , 'vectorized', True)
+    df = df.append(df_mc)
+    
+    plt.figure(figsize=(10,10))
+    sns.lineplot(x="MC Samples", y="Time in s", hue = "Computation",
+                 data=df.rename(columns={"time sum": "Time in s", "mc":"MC Samples", "threads":"Computation"}))
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.savefig("Results/parallel.pdf")
+
+parallel_plots()
+
+df_laguerre = pd.read_csv("Results/laguerre.csv")
+df_legendre = pd.read_csv("Results/legendre.csv")
+df_brutforce_mc = pd.read_csv("Results/brutforce_mc.csv")
+df_exp_mc_10 = pd.read_csv('Results/main_results_10.csv')
+df_exp_mc_100 = pd.read_csv('Results/main_results_100.csv')
+#df_exp_mc_200 = pd.read_csv('Results/main_results_200.csv')
+
+gauss_quad_plots(df_legendre, df_laguerre)
 plots_mc(df_brutforce_mc, "brutforce")
+
+#%% 
+#Visualization Importance sampling MC
+
+#Time plot:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+plot_time = pd.read_csv("Results/main_results_10.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Time',ax=ax,label = 10)
+plot_time = pd.read_csv("Results/main_results_100.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Time', color='red', ax=ax,label = 100)
+plot_time = pd.read_csv("Results/main_results_200.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Time', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("$log_{10}$(t) (in s)", fontsize = 20)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20) 
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
+plt.savefig("Results/time_ceci_mc.pdf")
+plt.show()
+
+#%%
+
+#Rel error plot:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+#ax.set_facecolor('white')
+#fig.patch.set_facecolor('white')
+#ax.patch.set_facecolor('white')
+plot_rel_error = pd.read_csv("Results/main_results_10.csv")
+plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error',ax=ax,label = 10)
+plot_rel_error = pd.read_csv("Results/main_results_100.csv")
+plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error', color='red', ax=ax,label = 100)
+plot_rel_error = pd.read_csv("Results/main_results_200.csv")
+plot_rel_error.plot(kind='line',x='log10_Samples(N)',y='Relative Error', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("$log_{10}(\\frac{|I-I_T|}{I_T})$", fontsize = 28)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+#plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
+plt.savefig("Results/Rel_error_ceci_mc.pdf")
+plt.show()
+
+#Variance plot:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+plot_time = pd.read_csv("Results/main_results_10.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Var',ax=ax,label = 10)
+plot_time = pd.read_csv("Results/main_results_100.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Var', color='red', ax=ax,label = 100)
+plot_time = pd.read_csv("Results/main_results_200.csv")
+plot_time.plot(kind='line',x='log10_Samples(N)',y='log10_Var', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("$log_{10}$(Var(I))", fontsize = 20)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.savefig("Results/var_ceci_mc.pdf")
+plt.show()
+
+
+
+#%%
+
+#Time plot against normal axes:
+fig, ax = plt.subplots(figsize=(10, 10))
+ax = plt.gca()
+plot_time = pd.read_csv("Results/main_results_10.csv")
+plot_time.plot(kind='line',x='Samples(N)',y='Time',ax=ax,label = 10)
+plot_time = pd.read_csv("Results/main_results_100.csv")
+plot_time.plot(kind='line',x='Samples(N)',y='Time', color='red', ax=ax,label = 100)
+plot_time = pd.read_csv("Results/main_results_200.csv")
+plot_time.plot(kind='line',x='Samples(N)',y='Time', color='green', ax=ax,label = 200)
+plt.xlabel("$log_{10}$(MC Samples)", fontsize =20)
+plt.ylabel("t in s", fontsize = 20)
+plt.legend(title = 'MC experiments', loc='best', fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.subplots_adjust(left=0.17, right=0.97, top=0.97, bottom=0.1)
+plt.savefig("Results/time_lin_ceci_mc.pdf")
+plt.show()
+
+
+
+#%%
+
+N = pd.read_txt('time_array', index_col=0)
+
+print(N)
+
+t = np.arange(0.01, 10.0, 0.01)
+data1 = np.exp(t)
+data2 = np.sin(2 * np.pi * t)
+
+fig, ax1 = plt.subplots()
+
+#color = 'tab:red'
+ax1.set_xlabel('MC Samples')
+ax1.set_ylabel('t in s', color=color)
+ax1.plot(t, data1, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.set_ylabel('', color=color)  # we already handled the x-label with ax1
+ax2.plot(t, data2, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
+
+
+
+#%%
