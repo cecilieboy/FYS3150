@@ -7,6 +7,8 @@ from matplotlib import pyplot as plt
 defining all functions for Ising model,
 expected input is the array of spin states state
 """
+import numpy as np 
+
 def E(state, J = 1):
     """
     calcualtes the Energy of a given state, with given J
@@ -63,3 +65,14 @@ lattice(300)
 
 
 # %%
+def M(state,factor =1):
+    """
+    calculates the Magnetisation of one state for a given prefactor
+    """
+    spins = np.where(state == 1, state, -1)
+    return factor*np.sum(spins)
+
+def mean_Energy(T, J):
+    """
+    claculates the mean energy for a given 
+    temperature T in units J/kb
