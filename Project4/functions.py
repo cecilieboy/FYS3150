@@ -25,6 +25,21 @@ def E(state, J = 1, b=0):
             sum_of_neighbours += state[i,j]*state[i, j-1] + state[i,j]*state[i-1,j]
     return -J*sum_of_neighbours - b* np.where(state==1, 1, -1).sum()
 
+def upper_neighbour_index(i,j, L):
+    """
+    returns the upper neighbour indices,
+    which are appropriate for periodic boundary conditions
+    """
+    if i == L - 1:
+        pi = 0
+    else:
+        pi = i + 1
+    if j == L - 1:
+        pj = 0
+    else:
+        pj = j + 1
+    return pi, pj
+
 def E_star(state, J = 1):
     """
     only even grids, 
@@ -37,14 +52,7 @@ def E_star(state, J = 1):
         j = i % 2
         while j < shape[1]:
             temp = state[i-1,j] +  state[i, j-1]
-            if i == shape[0] - 1:
-                pi = 0
-            else:
-                pi = i + 1
-            if j == shape[1] - 1:
-                pj = 0
-            else:
-                pj = j + 1
+            pi, pj = upper_neighbour_index(i,j, shape[0])
             temp += state[i, pj] + state [pi, j]
             sum_of_neighbours += state[i,j]*temp
             j += 2
