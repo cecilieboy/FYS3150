@@ -29,10 +29,10 @@ def M(state,factor =1):
     calculates the Magnetisation of one state for a given prefactor
     """
     spins = np.where(state == 1, 1, -1)
-    return factor*np.sum(spins)
+    return factor*np.abs(np.sum(spins))
 
 #%%
-def lattice(T,cutoff = 1000, L =20):
+def lattice(T,cutoff = 1000, L =10):
     t = 0
     
     init_lattice = np.random.randint(2,size=(L,L))
@@ -44,17 +44,26 @@ def lattice(T,cutoff = 1000, L =20):
         #print('====')
         #print('original Zustand:\n',init_lattice)
         #print('original Energie:',E_init)
-        new_lattice = np.random.randint(2,size=(L,L))
+        position_i = np.random.randint(L)
+        position_j = np.random.randint(L)
+        new_lattice = np.copy(init_lattice)
+
+        if init_lattice[position_i,position_j] == 0:
+            new_lattice[position_i,position_j] = 1
+
+        else: 
+            new_lattice[position_i,position_j] = 0
+        
         
         #print(new_lattice)
         E_new = E(new_lattice)
         M_new = M(new_lattice)
-        print(E_new)
-        print(M_new)
+        #print(E_new)
+        #print(M_new)
 
         rnd_p = random.uniform(0,1)
-        print('rndp',rnd_p)
-        print('vergleich',np.exp(-T * (E_new-E_init)))
+        #print('rndp',rnd_p)
+        #print('vergleich',np.exp(-T * (E_new-E_init)))
         if np.exp(-1/T * (E_new-E_init)) > rnd_p:
             init_lattice = new_lattice
             E_init = E_new
@@ -75,7 +84,15 @@ def lattice(T,cutoff = 1000, L =20):
     c=plt.matshow(av_lattice/(cutoff+1))
     plt.colorbar(c)
 
-lattice(1,cutoff=10000, L=20)
+lattice(2.4,cutoff=100000,L=20)
+#%%
 
 
+# %%
 
+#%%
+def mean_Energy(T, J):
+    """
+    claculates the mean energy for a given 
+    temperature T in units J/kb
+    pass
