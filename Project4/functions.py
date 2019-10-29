@@ -87,10 +87,13 @@ def lattice(T,cutoff = 1000, L =20):
         
         #print(new_lattice)
         E_new = E(new_lattice)
-        #print(E_new)
+        M_new = M(new_lattice)
+        print(E_new)
+        print(M_new)
+
         rnd_p = random.uniform(0,1)
-        #print('rndp',rnd_p)
-        #print('vergleich',np.exp(-T * (E_new-E_init)))
+        print('rndp',rnd_p)
+        print('vergleich',np.exp(-T * (E_new-E_init)))
         if np.exp(-1/T * (E_new-E_init)) > rnd_p:
             init_lattice = new_lattice
             E_init = E_new
@@ -111,62 +114,7 @@ def lattice(T,cutoff = 1000, L =20):
     c=plt.matshow(av_lattice/(cutoff+1))
     plt.colorbar(c)
 
-def lattice_opt(T,cutoff = 1000, L =20):
-    t = 0
-    
-    init_lattice = np.random.randint(2,size=(L,L))
-    av_lattice = init_lattice
-    E_init = E_star(init_lattice)
-    Energies = [E_init]
-    Magnetz = [M(init_lattice)] 
-    while t < cutoff: 
-        #print('====')
-        #print('original Zustand:\n',init_lattice)
-        #print('original Energie:',E_init)
-        new_lattice = np.random.randint(2,size=(L,L))
-        
-        #print(new_lattice)
-        E_new = E_star(new_lattice)
-        #print(E_new)
-        rnd_p = random.uniform(0,1)
-        #print('rndp',rnd_p)
-        #print('vergleich',np.exp(-T * (E_new-E_init)))
-        if np.exp(-1/T * (E_new-E_init)) > rnd_p:
-            init_lattice = new_lattice
-            E_init = E_new
-            #print('change')
-
-        t += 1
-        av_lattice += init_lattice
-        Energies.append(E_init)
-        Magnetz.append(M(init_lattice))
-
-    plt.figure()
-    plt.title('Energy')
-    plt.plot(Energies)    
-    plt.figure()
-    plt.title('Magnet')
-    plt.plot(Magnetz)
-    plt.figure()
-    c=plt.matshow(av_lattice/(cutoff+1))
-    plt.colorbar(c)
-s = perf_counter()
-lattice(1,cutoff=10**6, L=20)
-e1 = perf_counter()-s
-s = perf_counter()
-lattice_opt(1,cutoff=10**6, L=20)
-e2 = perf_counter() - s
-print("e1:", e1, ", e2: ", e2)
-
-#%%
-1%2
+lattice(1,cutoff=10000, L=20)
 
 
 
-# %%
-
-def mean_Energy(T, J):
-    """
-    claculates the mean energy for a given 
-    temperature T in units J/kb
-    pass
