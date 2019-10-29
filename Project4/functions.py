@@ -25,43 +25,47 @@ def E(state, J = 1):
     return -J*sum_of_neighbours
 
 #%%
-def lattice(T,cutoff = 1000):
+def lattice(N,T,cutoff = 1000):
     t = 0
     Energies = []
     Magnetz = [] 
-    init_lattice = np.random.randint(2,size=(2,2))
-    
+    init_lattice = np.random.randint(2,size=(N,N))
     E_init = E(init_lattice)
+    M_init = M(init_lattice)
     
     while t < cutoff: 
-        #print('====')
-        #print('original Zustand:\n',init_lattice)
-        #print('original Energie:',E_init)
-        new_lattice = np.random.randint(2,size=(2,2))
-        
-        #print(new_lattice)
+        print('====')
+        print('original Zustand:\n',init_lattice)
+        print('original Energie:',E_init)
+        print('original Magnetis.:',M_init)
+        print(',\n')
+        new_lattice = np.random.randint(2,size=(N,N))
+        print(new_lattice)
         E_new = E(new_lattice)
-        #print(E_new)
+        M_new = M(new_lattice)
+        print(E_new)
+        print(M_new)
+
         rnd_p = random.uniform(0,1)
-        #print('rndp',rnd_p)
-        #print('vergleich',np.exp(-T * (E_new-E_init)))
+        print('rndp',rnd_p)
+        print('vergleich',np.exp(-T * (E_new-E_init)))
         if np.exp(-1/T * (E_new-E_init)) > rnd_p:
             init_lattice = new_lattice
             E_init = E_new
-            #print('change')
+            M_init = M_new
+            print('change')
         else: 
             pass
         t += 1
         Energies.append(E_init)
+        Magnetz.append(M_init)
         
-        #Magnetz.append()
 
     plt.figure()
-    plt.plot(Energies)    
-lattice(300)
-#%%
-
-
+    plt.plot(Energies)  
+    plt.figure()
+    plt.plot(Magnetz)  
+lattice(2,1)
 
 
 # %%
@@ -70,9 +74,15 @@ def M(state,factor =1):
     calculates the Magnetisation of one state for a given prefactor
     """
     spins = np.where(state == 1, state, -1)
-    return factor*np.sum(spins)
+    print(spins)
+    return factor*np.abs(np.sum(spins))
 
+
+#%%
 def mean_Energy(T, J):
     """
     claculates the mean energy for a given 
     temperature T in units J/kb
+
+
+#%%
