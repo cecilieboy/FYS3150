@@ -40,6 +40,13 @@ def upper_neighbour_index(i,j, L):
         pj = j + 1
     return pi, pj
 
+def E_neighbourhood(i,j, state):
+    shape = state.shape
+    temp = state[i-1,j] +  state[i, j-1]
+    pi, pj = upper_neighbour_index(i,j, shape[0])
+    temp += state[i, pj] + state [pi, j]
+    return state[i,j]*temp
+
 def E_star(state, J = 1):
     """
     only even grids, 
@@ -51,10 +58,7 @@ def E_star(state, J = 1):
     while i <shape[0]:
         j = i % 2
         while j < shape[1]:
-            temp = state[i-1,j] +  state[i, j-1]
-            pi, pj = upper_neighbour_index(i,j, shape[0])
-            temp += state[i, pj] + state [pi, j]
-            sum_of_neighbours += state[i,j]*temp
+            sum_of_neighbours += E_neighbourhood(i,j, state)
             j += 2
         i += 1
     return -J*sum_of_neighbours
@@ -81,7 +85,12 @@ print("time saving for 1e6 iter: ", (te-te1)*1e6)
 #%%
 def lattice(T,cutoff = 1000, L =20):
     t = 0
-    
+    #optimal Energy calculation method
+    if L%2==0:
+        energy_of_sate = E_star
+    else:
+        energy_of_sate = E
+
     init_lattice = np.random.randint(2,size=(L,L))
     av_lattice = init_lattice
     E_init = E(init_lattice)
