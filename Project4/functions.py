@@ -32,24 +32,6 @@ def M(state,factor =1):
     return factor*np.sum(spins)
 
 #%%
-<<<<<<< HEAD
-def lattice(N,T,cutoff = 1000):
-    t = 0
-    Energies = []
-    Magnetz = [] 
-    init_lattice = np.random.randint(2,size=(N,N))
-    E_init = E(init_lattice)
-    M_init = M(init_lattice)
-    
-    while t < cutoff: 
-        print('====')
-        print('original Zustand:\n',init_lattice)
-        print('original Energie:',E_init)
-        print('original Magnetis.:',M_init)
-        print(',\n')
-        new_lattice = np.random.randint(2,size=(N,N))
-        print(new_lattice)
-=======
 def lattice(T,cutoff = 1000, L =20):
     t = 0
     
@@ -65,7 +47,6 @@ def lattice(T,cutoff = 1000, L =20):
         new_lattice = np.random.randint(2,size=(L,L))
         
         #print(new_lattice)
->>>>>>> be1046fa804dfcf7388af6b7296fc4c0b6a56d47
         E_new = E(new_lattice)
         M_new = M(new_lattice)
         print(E_new)
@@ -77,39 +58,11 @@ def lattice(T,cutoff = 1000, L =20):
         if np.exp(-1/T * (E_new-E_init)) > rnd_p:
             init_lattice = new_lattice
             E_init = E_new
-<<<<<<< HEAD
-            M_init = M_new
-            print('change')
-        else: 
-            pass
-=======
             #print('change')
 
->>>>>>> be1046fa804dfcf7388af6b7296fc4c0b6a56d47
         t += 1
         av_lattice += init_lattice
         Energies.append(E_init)
-<<<<<<< HEAD
-        Magnetz.append(M_init)
-        
-
-    plt.figure()
-    plt.plot(Energies)  
-    plt.figure()
-    plt.plot(Magnetz)  
-lattice(2,1)
-
-
-# %%
-def M(state,factor =1):
-    """
-    calculates the Magnetisation of one state for a given prefactor
-    """
-    spins = np.where(state == 1, state, -1)
-    print(spins)
-    return factor*np.abs(np.sum(spins))
-
-=======
         Magnetz.append(M(init_lattice))
 
     plt.figure()
@@ -123,23 +76,6 @@ def M(state,factor =1):
     plt.colorbar(c)
 
 lattice(1,cutoff=10000, L=20)
-#%%
-print(init_latice)
 
 
 
-# %%
->>>>>>> be1046fa804dfcf7388af6b7296fc4c0b6a56d47
-
-#%%
-def mean_Energy(T, J):
-    """
-    claculates the mean energy for a given 
-    temperature T in units J/kb
-<<<<<<< HEAD
-
-
-#%%
-=======
-    pass
->>>>>>> be1046fa804dfcf7388af6b7296fc4c0b6a56d47
