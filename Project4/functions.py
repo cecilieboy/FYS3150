@@ -64,7 +64,7 @@ def M(state,factor =1):
     calculates the Magnetisation of one state for a given prefactor
     """
     spins = np.where(state == 1, 1, -1)
-    return factor*np.sum(spins)
+    return np.abs(factor*np.sum(spins))
 
 from time import perf_counter
 arr = np.random.randint(2, size =(20,20))
