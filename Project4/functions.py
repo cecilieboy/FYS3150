@@ -92,10 +92,13 @@ def lattice(T,cutoff = 1000, L =10):
         energy_of_sate = E
 
     init_lattice = np.random.randint(2,size=(L,L))
-    av_lattice = init_lattice
+    av_lattice = np.copy(init_lattice)
     E_init = E(init_lattice)
     Energies = [E_init]
     Magnetz = [M(init_lattice)] 
+    
+
+    
     while t < cutoff: 
         #print('====')
         #print('original Zustand:\n',init_lattice)
@@ -104,12 +107,10 @@ def lattice(T,cutoff = 1000, L =10):
         position_j = np.random.randint(L)
         new_lattice = np.copy(init_lattice)
 
-        if init_lattice[position_i,position_j] == 0:
-            new_lattice[position_i,position_j] = 1
+        new_lattice[position_i,position_j] = 1 - init_lattice[position_i,position_j]
 
-        else: 
-            new_lattice[position_i,position_j] = 0
-        
+        diff_E = E_neighbourhood(position_i,position_j,new_lattice) - E_neighbourhood(position_i,position_j,init_lattice)
+
         
         #print(new_lattice)
         E_new = E(new_lattice)
@@ -120,8 +121,8 @@ def lattice(T,cutoff = 1000, L =10):
         rnd_p = random.uniform(0,1)
         #print('rndp',rnd_p)
         #print('vergleich',np.exp(-T * (E_new-E_init)))
-        if np.exp(-1/T * (E_new-E_init)) > rnd_p:
-            init_lattice = new_lattice
+        if np.exp(-1/T * diff_E) > rnd_p:
+            init_lattice = np.copy(new_lattice)
             E_init = E_new
             #print('change')
 
@@ -140,7 +141,7 @@ def lattice(T,cutoff = 1000, L =10):
     c=plt.matshow(av_lattice/(cutoff+1))
     plt.colorbar(c)
 
-lattice(2.4,cutoff=100000,L=20)
+lattice(,cutoff=1000,L=2)
 #%%
 
 
