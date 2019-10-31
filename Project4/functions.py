@@ -83,7 +83,7 @@ def lattice(T,cutoff = 1000, L =10):
     Energies = [E_current]
     Magnetz = [M_current] 
     
-
+    keys_diff_E = {diff_E:np.exp(-1/T * diff_E) for diff_E in [-8,-4,0,4,8]}
     
     while t < cutoff: 
 
@@ -101,7 +101,7 @@ def lattice(T,cutoff = 1000, L =10):
         print(M_current)
         """
         rnd_p = random.uniform(0,1)
-        if np.exp(-1/T * diff_E) > rnd_p:
+        if keys_diff_E[diff_E] > rnd_p:
             M_current += 2* new_lattice[position_i, position_j]
             init_lattice = np.copy(new_lattice)
             
@@ -112,6 +112,8 @@ def lattice(T,cutoff = 1000, L =10):
         Energies.append(E_current)
         Magnetz.append(M_current)
 
+    return Energies, Magnetz
+    """
     print(init_lattice)
     plt.subplot(121)
     plt.title('Energy')
@@ -120,5 +122,13 @@ def lattice(T,cutoff = 1000, L =10):
     plt.title('Magnet')
     plt.plot(Magnetz)
     plt.show()
+    """
 
-lattice(1,cutoff=5000,L=2)
+lattice(1,cutoff=100000,L=20)
+
+
+#%%
+
+
+
+
