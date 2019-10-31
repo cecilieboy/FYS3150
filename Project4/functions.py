@@ -70,18 +70,6 @@ def M(state,factor =1):
     spins = np.where(state == 1, 1, -1)
     return np.abs(factor*np.sum(spins))
 
-from time import perf_counter
-arr = np.random.randint(2, size =(20,20))
-print(arr)
-start = perf_counter()
-e = E(arr)
-te= perf_counter()- start 
-print("Normal: E=%i, time = %.4f"%(e,te))
-start = perf_counter()
-e = E_star(arr)
-te1= perf_counter()- start 
-print("Star: E=%i, time = %.4f"%(e,te1))
-print("time saving for 1e6 iter: ", (te-te1)*1e6)
 #%%
 def lattice(T,cutoff = 1000, L =10):
     t = 0
@@ -93,16 +81,15 @@ def lattice(T,cutoff = 1000, L =10):
 
     init_lattice = np.random.randint(2,size=(L,L))
     av_lattice = np.copy(init_lattice)
-    E_init = E(init_lattice)
-    Energies = [E_init]
-    Magnetz = [M(init_lattice)] 
+    E_current = energy_of_sate(init_lattice)
+    M_current = M(init_lattice)
+    Energies = [E_current]
+    Magnetz = [M_current] 
     
 
     
     while t < cutoff: 
-        #print('====')
-        #print('original Zustand:\n',init_lattice)
-        #print('original Energie:',E_init)
+
         position_i = np.random.randint(L)
         position_j = np.random.randint(L)
         new_lattice = np.copy(init_lattice)
@@ -111,45 +98,28 @@ def lattice(T,cutoff = 1000, L =10):
 
         diff_E = E_neighbourhood(position_i,position_j,new_lattice) - E_neighbourhood(position_i,position_j,init_lattice)
 
-        
-        #print(new_lattice)
-        E_new = E(new_lattice)
-        M_new = M(new_lattice)
-        #print(E_new)
-        #print(M_new)
-
         rnd_p = random.uniform(0,1)
-        #print('rndp',rnd_p)
-        #print('vergleich',np.exp(-T * (E_new-E_init)))
         if np.exp(-1/T * diff_E) > rnd_p:
+            M_current += new_lattice[position_i, position_j] - init_lattice[position_i, position_j]
             init_lattice = np.copy(new_lattice)
-            E_init = E_new
-            #print('change')
+            E_current  += diff_E
+
 
         t += 1
         av_lattice += init_lattice
-        Energies.append(E_init)
-        Magnetz.append(M(init_lattice))
+        Energies.append(E_current)
+        Magnetz.append(M_current)
 
-    plt.figure()
+    plt.subplot(121)
     plt.title('Energy')
     plt.plot(Energies)    
-    plt.figure()
+    plt.subplot(122)
     plt.title('Magnet')
     plt.plot(Magnetz)
-    plt.figure()
+    plt.show()
+
     c=plt.matshow(av_lattice/(cutoff+1))
     plt.colorbar(c)
+    plt.show()
 
-lattice(,cutoff=1000,L=2)
-#%%
-
-
-# %%
-
-#%%
-def mean_Energy(T, J):
-    """
-    claculates the mean energy for a given 
-    temperature T in units J/kb
-    pass
+lattice(1,cutoff=10000,L=20)
