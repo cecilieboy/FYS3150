@@ -2,6 +2,7 @@
 import numpy as np
 import random
 from matplotlib import pyplot as plt
+
 #%%
 """
 defining all functions for Ising model,
@@ -68,7 +69,7 @@ def M(spins,factor =1):
     return factor*np.sum(spins)
 
 #%%
-def lattice(T,cutoff = 1000, L =10):
+def lattice(T,cutoff = 1000, L =10, plot = False):
     t = 0
     #optimal Energy calculation method
     if L%2==0:
@@ -78,11 +79,20 @@ def lattice(T,cutoff = 1000, L =10):
 
     init_lattice = np.random.randint(2,size=(L,L))
     init_lattice = np.where(init_lattice==1, 1, -1)
+    
+
     E_current = energy_of_sate(init_lattice)
     M_current = M(init_lattice)
-    Energies = [E_current]
-    Magnetz = [M_current] 
-    
+    if plot:
+        average = np.copy(init_lattice)
+        Energies = [E_current]
+        Magnetz = [M_current] 
+
+    E_mean = 0
+    E2_mean = 0
+    M_mean = 0
+    M2_mean = 0
+
     keys_diff_E = {diff_E:np.exp(-1/T * diff_E) for diff_E in [-8,-4,0,4,8]}
     
     while t < cutoff: 
@@ -109,22 +119,58 @@ def lattice(T,cutoff = 1000, L =10):
 
 
         t += 1
-        Energies.append(E_current)
-        Magnetz.append(M_current)
+        if plot:
+            Energies.append(E_current)
+            Magnetz.append(M_current)
+            average += np.copy(init_lattice)
 
-    return Energies, Magnetz
-    """
-    print(init_lattice)
-    plt.subplot(121)
-    plt.title('Energy')
-    plt.plot(Energies)    
-    plt.subplot(122)
-    plt.title('Magnet')
-    plt.plot(Magnetz)
-    plt.show()
-    """
+        E_mean += E_current
+        E2_mean += E_current**2
+        M_mean += abs(M_current)
+        M2_mean += M_current**2
 
-lattice(1,cutoff=100000,L=20)
+        
+    if plot:
+        plt.figure(figsize=(10,10))
+
+        plt.subplot(121)
+        plt.plot(Energies) 
+        plt.xlabel('MC cycle', fontsize = 24)
+        plt.ylabel('E/J', fontsize = 24)  
+        plt.xticks(fontsize=20, ticks=np.linspace(0, cutoff, 3))
+        plt.yticks(fontsize=20) 
+
+        plt.subplot(122)
+        plt.plot(np.abs(Magnetz))
+        plt.xlabel('MC cycle', fontsize = 24)
+        plt.ylabel('|M|/$\mu$', fontsize = 24)
+        plt.xticks(fontsize=20, ticks=np.linspace(0, cutoff, 3))
+        plt.yticks(fontsize=20)
+
+        plt.suptitle("T = %.2f; L = %i"%(T,L), fontsize = 26)
+        plt.tight_layout()
+        plt.savefig("./Results/Random_Walk_L%i_T%i.pdf"%(L, 10*T))
+
+        plt.figure(figsize=(10,10), clear = True)
+        plt.title("T = %.2f; L = %i"%(T,L), fontsize = 26)
+        c = plt.imshow(average/cutoff, cmap='coolwarm')
+        ax=plt.colorbar(c)
+        ax.set_label("S", fontsize = 24)
+        plt.xlabel('x a.u.', fontsize = 24)
+        plt.ylabel('y a.u.', fontsize = 24)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.savefig("./Results/Average_Lattice_L%i_T%i.pdf"%(L, 10*T))
+
+    E_T = E_mean/cutoff
+    cv_T = (E2_mean/cutoff - E_T**2)/T
+    M_T = M_mean/cutoff
+    chi_T = (M2_mean/cutoff - M_T**2)/T
+    
+    return T, E_T, cv_T, M_T, chi_T
+ 
+if __name__ =='__main__':
+    lattice(2.4,cutoff=10**6,L=100,plot = True)
 
 
 #%%
