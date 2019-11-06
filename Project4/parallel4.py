@@ -8,7 +8,7 @@ import array
 from tqdm import tqdm
 # %%
 
-start = perf_counter()
+#start = perf_counter()
 comm = MPI.COMM_WORLD
 worldSize = comm.Get_size()
 rank = comm.Get_rank()
@@ -20,10 +20,11 @@ cut = int(sys.argv[2])
 amode = MPI.MODE_WRONLY|MPI.MODE_CREATE|MPI.MODE_APPEND
 f = MPI.File.Open(comm, 'paralell_L%i.txt'%L,amode)
 
+T = np.arange(2,2.305,0.05)
 
-T = np.append(np.append(np.linspace(0.1, 2, 10 ),   #0.2 stepsize
-                        np.linspace(2,2.5,50)),     #0.01 stepsize
-                        np.linspace(2.5,4.5,10))    #0.2 stepsize
+#T = np.append(np.append(np.linspace(0.1, 2, 10 ),   #0.2 stepsize
+#                        np.linspace(2,2.5,50)),     #0.01 stepsize
+#                        np.linspace(2.5,4.5,10))    #0.2 stepsize
 
 shape = T.shape
 

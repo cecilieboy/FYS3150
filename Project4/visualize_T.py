@@ -1,12 +1,13 @@
 """
 script to visualize results of parallel computation
 """
+#%%
 import pandas as pd 
 import numpy as np 
 import seaborn as sns
 import matplotlib.pyplot as plt 
 import sys 
-
+#%%
 filename = sys.argv[1]
 L = int(sys.argv[2])
 
@@ -23,3 +24,4 @@ for i,y in enumerate(Y):
     plt.xlabel("T/$k_B$ J", fontsize=24)
     plt.ylabel(y_label[i]+'/$L^2$', fontsize=24)
     plt.savefig("L_%i"%L+y+".pdf")
+#%%
