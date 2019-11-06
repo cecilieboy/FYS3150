@@ -41,9 +41,7 @@ for r in tqdm(T[rank * a : (rank + 1) * a]):
         f.Write_shared(buf)
 
 comm.Barrier()
-if rank == TaskMaster:    
-    f.Close()
+    
+f.Close()
         
 
-
-# %%
