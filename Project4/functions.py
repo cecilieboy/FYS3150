@@ -183,16 +183,18 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
 
         return stab_E, stab_m
 
+
     E_T = np.mean(Energies)
-    cv_T = (np.mean(Energies**2) - E_T**2)/T**2
+    cv_T = (E2_mean / cutoff - E_T**2)/T**2
     M_T = np.mean(Magnetz)
-    chi_T = (np.mean(Magnetz**2) - M_T**2)/T
+    chi_T = (M2_mean / cutoff - M_T**2)/T
     M_T = np.mean(np.abs(Magnetz))
-    
+    print(chi_T)
+
     return T, E_T, np.var(Energies), cv_T, M_T, np.var(Magnetz), chi_T
  
 if __name__ =='__main__':
-    lattice(1,cutoff=50,L=2,plot = False)
+    lattice(1,cutoff=3000,L=2,plot = False)
 
 
 #%%
@@ -205,16 +207,13 @@ def anal_sol(T,kb = 1):
     mean_e = (-8 * np.sinh(x)) / (np.cosh(x) + 3)
     cv = 1 / (8 * T) * x * ((8**2) * np.cosh(x) / (np.cosh(x) + 3) - ((8 * np.sinh(x)) / (np.cosh(x) + 3))**2)
     mean_abs_m = (8 * np.exp(x) + 16) / (4 * (np.cosh(x) + 3))
-    chi = 1 / 8 * x * ((4 * np.sinh(x)) / (np.cosh(x) + 3) - (np.sinh(x) / (np.cosh(x) + 3))**2)
+    chi = 1 / 8 * x * ((8 * (np.exp(x) + 1)) / (np.cosh(x) + 3) - ((2 * (np.exp(x) + 2)) / (np.cosh(x) + 3))**2)
 
     return part_func,mean_e,cv,mean_abs_m,chi
 
 T = 1
-part_func, mean_e, cv, mean_abs_m, chi, mean2_e = anal_sol(T)
+part_func, mean_e, cv, mean_abs_m, chi = anal_sol(T)
 print(mean_e,cv,mean_abs_m,chi)
-
-
-
 
 
 
