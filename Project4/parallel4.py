@@ -15,7 +15,7 @@ rank = comm.Get_rank()
 TaskMaster = 0
 
 L = int(sys.argv[1])
-cut = int(sys.argv[2])
+cut = 10**6
 #       write only     | create file   | append at end
 amode = MPI.MODE_WRONLY|MPI.MODE_CREATE|MPI.MODE_APPEND
 f = MPI.File.Open(comm, 'paralell_L%i.txt'%L,amode)
@@ -29,33 +29,14 @@ T = np.arange(2,2.305,0.05)
 shape = T.shape
 
 a = shape[0] // worldSize
-N = 100
+N = 1
 
 
 
 for r in tqdm(T[rank * a : (rank + 1) * a]):
     for i in range(N):
-        #       T       E     cv    M     chi
-        out = "%f \t %f \t %f \t %f \t %f \n" % lattice(r, cutoff = cut, L = L, plot = False)
-        buf = bytearray()
-        buf.extend(map(ord, out))
-        f.Write_shared(buf)
-
-comm.Barrier()
-#split last two temperature 
-#optimized for 4 parallel programs and 
-#2 remaning temperatures
-if rank < worldSize/2 : 
-    for i in tqdm(range(N//2)):
-        #       T       E     cv    M     chi
-        out = "%f \t %f \t %f \t %f \t %f \n" % lattice(T[-2], cutoff = cut, L = L, plot = False)
-        buf = bytearray()
-        buf.extend(map(ord, out))
-        f.Write_shared(buf)
-else:
-    for i in tqdm(range(N//2)):
-        #       T       E     cv    M     chi
-        out = "%f \t %f \t %f \t %f \t %f \n" % lattice(T[-1], cutoff = cut, L = L, plot = False)
+        #       T     E   var E  cv    M    var M  chi
+        out = "%f \t %f \t %f \t %f \t %f \t %f \t %f \n" % lattice(r, cutoff = cut, L = L, plot = False)
         buf = bytearray()
         buf.extend(map(ord, out))
         f.Write_shared(buf)

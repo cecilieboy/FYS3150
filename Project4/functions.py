@@ -134,23 +134,39 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
 
         
     if plot:
+        Energies = np.array(Energies)
+        Magnetz = np.array(Magnetz)
         plt.figure(figsize=(10,10))
+        plt.suptitle("T = %.1f; L = %i"%(T,L), fontsize = 26)
 
-        plt.subplot(121)
+        plt.subplot(221)
         plt.plot(Energies) 
         plt.xlabel('MC cycle', fontsize = 24)
-        plt.ylabel('E/J', fontsize = 24)  
+        plt.ylabel('E/JL$^2$', fontsize = 24)  
         plt.xticks(fontsize=20, ticks=np.linspace(0, cutoff, 3))
         plt.yticks(fontsize=20) 
 
-        plt.subplot(122)
+        plt.subplot(222)
         plt.plot(np.abs(Magnetz))
         plt.xlabel('MC cycle', fontsize = 24)
-        plt.ylabel('|M|/$\mu$', fontsize = 24)
+        plt.ylabel('|M|/$\mu L^2$', fontsize = 24)
         plt.xticks(fontsize=20, ticks=np.linspace(0, cutoff, 3))
         plt.yticks(fontsize=20)
-
-        plt.suptitle("T = %.2f; L = %i"%(T,L), fontsize = 26)
+        stab_E = Energies[cutoff//2:]
+        plt.subplot(223)
+        plt.hist(stab_E, bins = 15, weights=np.ones(len(stab_E))/len(stab_E), density=False)
+        plt.xlabel('E/JL$^2$', fontsize = 24)  
+        plt.ylabel('P(E)', fontsize = 24)  
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20) 
+        stab_m= np.abs(Magnetz[cutoff//2:])
+        plt.subplot(224)
+        plt.hist(stab_m, bins = 15, weights=np.ones(len(stab_m))/len(stab_m), density=False)
+        plt.xlabel('|M|/$\mu L^2$', fontsize = 24)  
+        plt.ylabel('P(|M|)', fontsize = 24)  
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20) 
+        
         plt.tight_layout()
         #plt.savefig("./Results/Random_Walk_L%i_T%i.pdf"%(L, 10*T))
 
@@ -163,24 +179,17 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
         plt.ylabel('y a.u.', fontsize = 24)
         plt.xticks(fontsize=20)
         plt.yticks(fontsize=20)
-        #plt.savefig("./Results/Average_Lattice_L%i_T%i.pdf"%(L, 10*T))
+        plt.savefig("./Results/Average_Lattice_L%i_T%i.pdf"%(L, 10*T))
 
-    #Means of last half of gathered points: 10 chosen as value for now:
-    altered_mean_e = np.mean(Energies[cutoff-10:cutoff])
-    altered_mean_m = np.mean(Magnetz[cutoff-10:cutoff])
-    var_E = statistics.variance(Energies)
-    var_M = statistics.variance(Magnetz)
-    #print(altered_mean_e)
-    #print(altered_mean_m)
+        return stab_E, stab_m
 
-    E_T = E_mean/cutoff 
-    #print(E_T)
-    cv_T = (E2_mean/cutoff - E_T**2)/T**2
-    M_T = M_mean/cutoff
-    chi_T = (M2_mean/cutoff - M_T**2)/T
-
+    E_T = np.mean(Energies)
+    cv_T = (np.mean(Energies**2) - E_T**2)/T**2
+    M_T = np.mean(Magnetz)
+    chi_T = (np.mean(Magnetz**2) - M_T**2)/T
+    M_T = np.mean(np.abs(Magnetz))
     
-    return T, E_T, cv_T, M_T, chi_T
+    return T, E_T, np.var(Energies), cv_T, M_T, np.var(Magnetz), chi_T
  
 if __name__ =='__main__':
     lattice(1,cutoff=50,L=2,plot = False)
