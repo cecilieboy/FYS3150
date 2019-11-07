@@ -79,5 +79,3 @@ if rank == TaskMaster:
     f.Close()
         
 
-
-# %%
