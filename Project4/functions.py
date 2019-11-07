@@ -206,6 +206,36 @@ T = 1
 part_func, mean_e, cv, mean_abs_m, chi,chi_meanmsecond, chi_meanmsfirst = anal_sol(T)
 print(mean_e,cv,mean_abs_m,chi)
 
+#%%
+def comp_AB():
+    cutoff = [10,100,1000,10000]
+    print(cutoff)
+    rel_err_e = np.zeros(len(cutoff))
+    rel_err_m = np.zeros(len(cutoff))
+    rel_err_cv = np.zeros(len(cutoff))
+    rel_err_chi = np.zeros(len(cutoff))
+
+    for i in range(len(cutoff)):
+        
+        print(i)
+        _,en,_,cvn,mn,_,chin = lattice(1,cutoff[i],L=2,plot = False)
+
+        rel_err_e[i] = (np.abs(en - mean_e)) / (mean_e) 
+        rel_err_m[i] = (np.abs(mn - mean_abs_m)) / (mean_abs_m) 
+        rel_err_cv[i] = (np.abs(cvn - cv)) / (cv)
+        rel_err_chi[i] = (np.abs(chin - chi)) / (chi) 
+
+    print(rel_error_e)
+    plt.figure()
+    plt.plot(cutoff,rel_err_e,'b')
+    plt.plot(cutoff,rel_err_m,'r')
+    plt.plot(cutoff,rel_err_cv,'g')
+    plt.plot(cutoff,rel_err_chi,'y')
+    plt.show()
+
+#%%
+
+
 
 if __name__ =='__main__':
 
