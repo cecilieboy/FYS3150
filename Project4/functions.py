@@ -195,11 +195,9 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
 
     return T, E_T, np.var(Energies), cv_T, M_T, np.var(Magnetz), chi_T
  
-if __name__ =='__main__':
-    lattice(1,cutoff=10000,L=2,plot = False)
-
 
 #%%
+
 def anal_sol(T,kb = 1):
     '''''
     analytic solutions for L = 2. J is taken to be 1.
@@ -220,6 +218,14 @@ def anal_sol(T,kb = 1):
 T = 1
 part_func, mean_e, cv, mean_abs_m, chi,chi_meanmsecond, chi_meanmsfirst = anal_sol(T)
 print(mean_e,cv,mean_abs_m,chi)
+
+
+if __name__ =='__main__':
+    lattice(1,cutoff=10000,L=2,plot = False)
+
+
+#%%
+
 
 
 
