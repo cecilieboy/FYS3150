@@ -187,14 +187,16 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
     E_T = np.mean(Energies)
     cv_T = (E2_mean / cutoff - E_T**2)/T**2
     M_T = np.mean(Magnetz)
+    M_T = np.mean(np.abs(Magnetz)) #chi gives always right answer with this def of M_T
     chi_T = (M2_mean / cutoff - M_T**2)/T
-    M_T = np.mean(np.abs(Magnetz))
-    print(chi_T)
+    
+    
+
 
     return T, E_T, np.var(Energies), cv_T, M_T, np.var(Magnetz), chi_T
  
 if __name__ =='__main__':
-    lattice(1,cutoff=3000,L=2,plot = False)
+    lattice(1,cutoff=10000,L=2,plot = False)
 
 
 #%%
@@ -209,11 +211,18 @@ def anal_sol(T,kb = 1):
     mean_abs_m = (8 * np.exp(x) + 16) / (4 * (np.cosh(x) + 3))
     chi = 1 / 8 * x * ((8 * (np.exp(x) + 1)) / (np.cosh(x) + 3) - ((2 * (np.exp(x) + 2)) / (np.cosh(x) + 3))**2)
 
-    return part_func,mean_e,cv,mean_abs_m,chi
+    chi_meanmsecond = (((2 * (np.exp(x) + 2)) / (np.cosh(x) + 3))**2)
+    chi_meanmsfirst = (8 * (np.exp(x) + 1)) / (np.cosh(x) + 3)
+
+
+    return part_func,mean_e,cv,mean_abs_m,chi,chi_meanmsecond, chi_meanmsfirst
 
 T = 1
-part_func, mean_e, cv, mean_abs_m, chi = anal_sol(T)
+part_func, mean_e, cv, mean_abs_m, chi,chi_meanmsecond, chi_meanmsfirst = anal_sol(T)
 print(mean_e,cv,mean_abs_m,chi)
+
+
+
 
 
 

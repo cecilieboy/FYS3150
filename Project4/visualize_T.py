@@ -25,3 +25,5 @@ for i,y in enumerate(Y):
     plt.ylabel(y_label[i]+'/$L^2$', fontsize=24)
     plt.savefig("L_%i"%L+y+".pdf")
 #%%
+
+
