@@ -3,6 +3,7 @@ import numpy as np
 import random
 from matplotlib import pyplot as plt
 import statistics
+from tqdm import tqdm
 #%%
 """
 defining all functions for Ising model,
@@ -211,8 +212,8 @@ if __name__ =='__main__':
     temp = [1.0, 2.4, 3.0]
     fig = np.array([plt.subplots(1, figsize=(10,10)) for i in range(2)])
     
-    for T in temp:
-        stab_E, stab_M = lattice(T,cutoff=10**6,L=100,plot = True)
+    for T in tqdm(temp):
+        stab_E, stab_M = lattice(T,cutoff=10**7,L=100,plot = True)
 
 
         if T == 1.0:
