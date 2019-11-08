@@ -85,18 +85,14 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
     
     E_current = energy_of_sate(init_lattice)
     M_current = M(init_lattice)
-    #if plot:
-    average = np.copy(init_lattice)
-    Energies = [E_current]
-    Magnetz = [M_current] 
-    Energies_squared = []
-    Magnetz_squared = []
 
-    E_mean = 0
-    E2_mean = 0
-    M_mean = 0
-    M2_mean = 0
-
+    if plot:
+        average = np.copy(init_lattice)
+        Energies = [E_current]
+        Magnetz = [M_current] 
+    else:
+        Energies_squared = []
+        Magnetz_squared = []
 
     keys_diff_E = {diff_E:np.exp(-1/T * diff_E) for diff_E in [-8,-4,0,4,8]}
     
@@ -109,7 +105,6 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
         new_lattice[position_i,position_j] = - init_lattice[position_i,position_j]
 
         diff_E = E_neighbourhood(position_i,position_j,new_lattice) - E_neighbourhood(position_i,position_j,init_lattice)
-        
         rnd_p = random.uniform(0,1)
         if keys_diff_E[diff_E] > rnd_p:
             M_current += 2* new_lattice[position_i, position_j]
@@ -117,33 +112,21 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
             
             E_current  += diff_E
 
-            #print(E_current)
-
-
         t += 1
 
-        #if plot:
-        Energies.append(E_current)
-        #print(Energies)
-        Magnetz.append(M_current)
-        Energies_squared.append(E_current**2)
-        Magnetz_squared.append(M_current**2)
-        average += np.copy(init_lattice)
-
-        
-        E_mean += E_current
-        E2_mean += E_current**2
-        M_mean += abs(M_current)
-        M2_mean += M_current**2
-
-       
-
+        if plot:
+            Energies.append(E_current)
+            Magnetz.append(M_current)
+            average += np.copy(init_lattice)
+        elif t > cutoff - 1e5:
+            Energies.append(E_current)
+            Magnetz.append(M_current)
         
 
-        
+    Energies = np.array(Energies) /L**2
+    Magnetz = np.abs(Magnetz)   / L**2  
     if plot:
-        Energies = np.array(Energies)
-        Magnetz = np.array(Magnetz)
+        
         plt.figure(figsize=(10,10))
         plt.title("T/k$_B$J = %.1f; L = %i"%(T,L), fontsize = 24)
 
@@ -155,7 +138,7 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
         plt.yticks(fontsize=20) 
 
         plt.subplot(122)
-        plt.plot(np.abs(Magnetz))
+        plt.plot(Magnetz)
         plt.xlabel('MC cycle', fontsize = 24)
         plt.ylabel('|M|/$\mu L^2$', fontsize = 24)
         plt.xticks(fontsize=20, ticks=np.linspace(0, cutoff, 3))
@@ -175,31 +158,52 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
         plt.yticks(fontsize=20)
         plt.savefig("./Results/Average_Lattice_L%i_T%i.pdf"%(L, 10*T))
 
-        return np.array(Energies[cutoff//2:]), np.abs(Magnetz[cutoff//2:])
-
+        return Energies[cutoff//2:], Magnetz[cutoff//2:]
 
 
 
     E_T = np.mean(Energies)
-    #print(E_T)
-    cv_T = (E2_mean / cutoff - E_T**2)/T**2
-    M_T = np.mean(Magnetz)
-    M_T = np.mean(np.abs(Magnetz)) #chi gives always right answer with this def of M_T
-    chi_T = (M2_mean / cutoff - M_T**2)/T
-
-    #now defining E_T, cv_T, M_T, chi_T with mean taken over cutoff//2: (so the second half of the array)
-    # mp stands for more precise: maybe define better/nore accurate cutoff, where we start sample over:
-    '''''
-    E_mp_T = np.mean(Energies[cutoff//2:])
-    M_mp_T = np.mean(Magnetz[cutoff//2:])
-    cv_mp_T = (Energies_squared[cutoff//2:] / cutoff - E_mp_T**2) / T**2    #integer//: problem
-    chi_mp_T = (Magnetz_squared / cutoff - M_mp_T**2) / T
-    '''''
+    cv_T = (np.mean(Energies**2)  - E_T**2)/T**2
+    M_T = np.mean(Magnetz) #chi gives always right answer with this def of M_T
+    chi_T = ( np.mean(Magnetz**2) - M_T**2)/T
 
     return T, E_T, np.var(Energies), cv_T, M_T, np.var(Magnetz), chi_T
 
-lattice(1,100,2,False)
 #%%
+def plot_lattice(L, cutoff=10**7, temp = [1.0, 2.4, 3.0]):
+    """
+    function to plot lattice random walks and distribution in stable tail of random walk
+    """
+    fig = np.array([plt.subplots(1, figsize=(10,10)) for i in range(2)])
+    
+    for T in tqdm(temp):
+        stab_E, stab_M = lattice(T,cutoff=cutoff,L=L,plot = True)
+
+        if T == 1.0:
+            b = 5
+        else:
+            b = 15
+
+        fig[0,1].hist(stab_E, bins = b, weights=np.ones(len(stab_E))/len(stab_E), density=False, alpha = 0.6, label="T/k$_B$J = %.1f"%T)
+        fig[1,1].hist(stab_M, bins = b, weights=np.ones(len(stab_M))/len(stab_M), density=False, alpha = 0.6, label="T/k$_B$J = %.1f"%T)
+       
+    fig[0,1].set_xlabel('E/JL$^2$', fontsize = 24)  
+    fig[0,1].set_ylabel('P(E)', fontsize = 24)  
+    fig[0,1].tick_params(axis = 'both',labelsize = 20)
+    fig[0,1].legend(loc='best', fontsize =22)
+
+    fig[1,1].set_xlabel('|M|/$\mu L^2$', fontsize = 24)  
+    fig[1,1].set_ylabel('P(|M|)', fontsize = 24)  
+    fig[1,1].tick_params(axis = 'both',labelsize = 20)
+    fig[1,1].legend(loc='best', fontsize =22)
+
+    plt.figure(fig[0,0].number)
+    plt.tight_layout()
+    plt.savefig("Energies_%i.pdf"%L)
+
+    plt.figure(fig[1,0].number)
+    plt.tight_layout()
+    plt.savefig("Magnet_%i.pdf"L)
 
 def anal_sol(T,kb = 1):
     '''''
@@ -251,7 +255,7 @@ def comp_AB():
     plt.plot(cutoff,rel_err_chi,'y')
     plt.show()
 
-comp_AB()
+
 
 #%%
 def repeat_calls(T=1,cutoff=10000,L=2,plot = False,numb_run = 4):
@@ -274,9 +278,6 @@ def repeat_calls(T=1,cutoff=10000,L=2,plot = False,numb_run = 4):
     tot_chi_T = np.mean(chi_T)
 
     return tot_E_T,tot_M_T,tot_cv_T,tot_chi_T
-
-repeat_calls()
-
  
 
 
@@ -285,48 +286,8 @@ repeat_calls()
 
 
 if __name__ =='__main__':
-
-    temp = [1.0, 2.4, 3.0]
-    fig = np.array([plt.subplots(1, figsize=(10,10)) for i in range(2)])
-    
-    for T in tqdm(temp):
-        stab_E, stab_M = lattice(T,cutoff=10**7,L=100,plot = True)
+    plot_lattice(20, cutoff=10**6)
+    comp_AB()
+    repeat_calls()
 
 
-        if T == 1.0:
-            b = 5
-        else:
-            b = 15
-        fig[0,1].hist(stab_E, bins = b, weights=np.ones(len(stab_E))/len(stab_E), density=False, alpha = 0.6, label="T/k$_B$J = %.1f"%T)
-        fig[1,1].hist(stab_M, bins = b, weights=np.ones(len(stab_M))/len(stab_M), density=False, alpha = 0.6, label="T/k$_B$J = %.1f"%T)
-       
-
-        plt.yticks(fontsize=20)
-    fig[0,1].set_xlabel('E/JL$^2$', fontsize = 24)  
-    fig[0,1].set_ylabel('P(E)', fontsize = 24)  
-    fig[0,1].tick_params(axis = 'both',labelsize = 20)
-    fig[0,1].legend(loc='best', fontsize =22)
-
-    fig[1,1].set_xlabel('|M|/$\mu L^2$', fontsize = 24)  
-    fig[1,1].set_ylabel('P(|M|)', fontsize = 24)  
-    fig[1,1].tick_params(axis = 'both',labelsize = 20)
-    fig[1,1].legend(loc='best', fontsize =22)
-
-    plt.figure(fig[0,0].number)
-    plt.tight_layout()
-    plt.savefig("Energies_100.pdf")
-
-    plt.figure(fig[1,0].number)
-    plt.tight_layout()
-    plt.savefig("Magnet_100.pdf")
-#%%
-
-
-
-
-
-
-
-
-
-# %%
