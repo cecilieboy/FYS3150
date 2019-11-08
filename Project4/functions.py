@@ -203,7 +203,7 @@ def plot_lattice(L, cutoff=10**7, temp = [1.0, 2.4, 3.0]):
 
     plt.figure(fig[1,0].number)
     plt.tight_layout()
-    plt.savefig("Magnet_%i.pdf"L)
+    plt.savefig("Magnet_%i.pdf"%L)
 
 def anal_sol(T,kb = 1):
     '''''
