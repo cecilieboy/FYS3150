@@ -91,8 +91,8 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
         Energies = [E_current]
         Magnetz = [M_current] 
     else:
-        Energies_squared = []
-        Magnetz_squared = []
+        Energies = []
+        Magnetz = []
 
     keys_diff_E = {diff_E:np.exp(-1/T * diff_E) for diff_E in [-8,-4,0,4,8]}
     
