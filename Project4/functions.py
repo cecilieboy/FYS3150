@@ -89,6 +89,8 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
     average = np.copy(init_lattice)
     Energies = [E_current]
     Magnetz = [M_current] 
+    Energies_squared = []
+    Magnetz_squared = []
 
     E_mean = 0
     E2_mean = 0
@@ -115,12 +117,17 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
             
             E_current  += diff_E
 
+            #print(E_current)
+
 
         t += 1
 
         #if plot:
         Energies.append(E_current)
+        #print(Energies)
         Magnetz.append(M_current)
+        Energies_squared.append(E_current**2)
+        Magnetz_squared.append(M_current**2)
         average += np.copy(init_lattice)
 
         
@@ -171,18 +178,27 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
         return np.array(Energies[cutoff//2:]), np.abs(Magnetz[cutoff//2:])
 
 
+
+
     E_T = np.mean(Energies)
+    #print(E_T)
     cv_T = (E2_mean / cutoff - E_T**2)/T**2
     M_T = np.mean(Magnetz)
     M_T = np.mean(np.abs(Magnetz)) #chi gives always right answer with this def of M_T
     chi_T = (M2_mean / cutoff - M_T**2)/T
-    
-    
 
+    #now defining E_T, cv_T, M_T, chi_T with mean taken over cutoff//2: (so the second half of the array)
+    # mp stands for more precise: maybe define better/nore accurate cutoff, where we start sample over:
+    '''''
+    E_mp_T = np.mean(Energies[cutoff//2:])
+    M_mp_T = np.mean(Magnetz[cutoff//2:])
+    cv_mp_T = (Energies_squared[cutoff//2:] / cutoff - E_mp_T**2) / T**2    #integer//: problem
+    chi_mp_T = (Magnetz_squared / cutoff - M_mp_T**2) / T
+    '''''
 
     return T, E_T, np.var(Energies), cv_T, M_T, np.var(Magnetz), chi_T
- 
 
+lattice(1,100,2,False)
 #%%
 
 def anal_sol(T,kb = 1):
@@ -195,43 +211,74 @@ def anal_sol(T,kb = 1):
     cv = 1 / (8 * T) * x * ((8**2) * np.cosh(x) / (np.cosh(x) + 3) - ((8 * np.sinh(x)) / (np.cosh(x) + 3))**2)
     mean_abs_m = (8 * np.exp(x) + 16) / (4 * (np.cosh(x) + 3))
     chi = 1 / 8 * x * ((8 * (np.exp(x) + 1)) / (np.cosh(x) + 3) - ((2 * (np.exp(x) + 2)) / (np.cosh(x) + 3))**2)
+    #chi_meanmsecond = (((2 * (np.exp(x) + 2)) / (np.cosh(x) + 3))**2)
+    #chi_meanmsfirst = (8 * (np.exp(x) + 1)) / (np.cosh(x) + 3)
 
-    chi_meanmsecond = (((2 * (np.exp(x) + 2)) / (np.cosh(x) + 3))**2)
-    chi_meanmsfirst = (8 * (np.exp(x) + 1)) / (np.cosh(x) + 3)
 
+    return mean_e,cv,mean_abs_m,chi
 
-    return part_func,mean_e,cv,mean_abs_m,chi,chi_meanmsecond, chi_meanmsfirst
-
-T = 1
-part_func, mean_e, cv, mean_abs_m, chi,chi_meanmsecond, chi_meanmsfirst = anal_sol(T)
-print(mean_e,cv,mean_abs_m,chi)
 
 #%%
 def comp_AB():
-    cutoff = [10,100,1000,10000]
-    print(cutoff)
+
+    T = 1
+    mean_e, cv, mean_abs_m, chi = anal_sol(T)
+    #print('Anal.solutions:',mean_e,cv,mean_abs_m,chi)
+    cutoff = np.asarray([10,100,1000,5000,10000])
+    #print(len(cutoff))
     rel_err_e = np.zeros(len(cutoff))
     rel_err_m = np.zeros(len(cutoff))
     rel_err_cv = np.zeros(len(cutoff))
     rel_err_chi = np.zeros(len(cutoff))
 
     for i in range(len(cutoff)):
-        
-        print(i)
-        _,en,_,cvn,mn,_,chin = lattice(1,cutoff[i],L=2,plot = False)
+        #print(cutoff[i])
+        en,mn,cvn,chin = repeat_calls(T,cutoff[i],L=2,plot = False,numb_run = 10,)
+        #print(en,mn)
+        rel_err_e[i] = np.abs((en - mean_e) / (mean_e))
+        rel_err_m[i] = np.abs((mn - mean_abs_m) / (mean_abs_m)) 
+        rel_err_cv[i] = np.abs((cvn - cv) / cv)
+        rel_err_chi[i] = np.abs((chin - chi) / chi) 
 
-        rel_err_e[i] = (np.abs(en - mean_e)) / (mean_e) 
-        rel_err_m[i] = (np.abs(mn - mean_abs_m)) / (mean_abs_m) 
-        rel_err_cv[i] = (np.abs(cvn - cv)) / (cv)
-        rel_err_chi[i] = (np.abs(chin - chi)) / (chi) 
-
-    print(rel_error_e)
-    plt.figure()
+    #print(rel_err_e)
+    plt.subplot(1,2,1)
+    
     plt.plot(cutoff,rel_err_e,'b')
     plt.plot(cutoff,rel_err_m,'r')
+
+    plt.subplot(1,2,2)
     plt.plot(cutoff,rel_err_cv,'g')
     plt.plot(cutoff,rel_err_chi,'y')
     plt.show()
+
+comp_AB()
+
+#%%
+def repeat_calls(T=1,cutoff=10000,L=2,plot = False,numb_run = 4):
+    repetition = 0
+    E_run = []
+    M_run = []
+    cv_run = []
+    chi_run = []
+    while repetition < numb_run:
+        _,E_T,_,cv_T,M_T,_,chi_T = lattice(T,cutoff,L,plot=False)
+        #print(cv_T)
+        E_run.append(E_T)
+        M_run.append(M_T)
+        cv_run.append(cv_T)
+        chi_run.append(chi_T)
+        repetition += 1
+    tot_E_T = np.mean(E_run)
+    tot_M_T = np.mean(M_run)
+    tot_cv_T = np.mean(cv_T)
+    tot_chi_T = np.mean(chi_T)
+
+    return tot_E_T,tot_M_T,tot_cv_T,tot_chi_T
+
+repeat_calls()
+
+ 
+
 
 #%%
 

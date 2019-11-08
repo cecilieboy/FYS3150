@@ -34,8 +34,8 @@ N = 1
 
 
 for r in tqdm(T[rank * a : (rank + 1) * a]):
-    print('first cycle:',r)
-    print('ranktimes_a:',rank * a)
+    #print('first cycle:',r)
+    #print('ranktimes_a:',rank * a)
     for i in range(N):
         #       T     E   var E  cv    M    var M  chi
         out = "%f \t %f \t %f \t %f \t %f \t %f \t %f \n" % lattice(r, cutoff = cut, L = L, plot = False)

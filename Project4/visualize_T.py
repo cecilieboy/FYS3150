@@ -41,3 +41,8 @@ for i in range(4):
     ax[i,1].tick_params(axis = 'both',labelsize = 20)
     plt.tight_layout()
     plt.savefig(figname[i])
+
+
+
+
+# %%
