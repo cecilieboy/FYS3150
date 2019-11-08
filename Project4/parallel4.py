@@ -46,39 +46,4 @@ for r in tqdm(T[rank * a : (rank + 1) * a]):
 comm.Barrier()
 f.Close()
 
-
-
-#for r in tqdm(T[shape[0] - (a * worldSize):shape[0]]):
-#    print('second cycle:',r)
-#    for i in range(N):
-#        #       T     E   var E  cv    M    var M  chi
-#        out = "%f \t %f \t %f \t %f \t %f \t %f \t %f \n" % lattice(r, cutoff = cut, L = L, plot = False)
-#        buf = bytearray()
-#        buf.extend(map(ord, out))
-#        f.Write_shared(buf)
-
-#comm.Barrier()
-
-#if rank < worldSize/2 : 
-#    for i in tqdm(range(N//2)):
-        #       T       E     cv    M     chi
- #       out = "%f \t %f \t %f \t %f \t %f \n" % lattice(T[-2], cutoff = cut, L = L, plot = False)
- #       buf = bytearray()
- #       buf.extend(map(ord, out))
- #       f.Write_shared(buf)
-#else:
-#    for i in tqdm(range(N//2)):
-        #       T       E     cv    M     chi
-#        out = "%f \t %f \t %f \t %f \t %f \n" % lattice(T[-1], cutoff = cut, L = L, plot = False)
-#        buf = bytearray()
-#        buf.extend(map(ord, out))
-#        f.Write_shared(buf)
-
-
-#comm.Barrier()
-
-        
-
-
-
 # %%
