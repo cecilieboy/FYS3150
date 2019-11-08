@@ -55,15 +55,17 @@ for i in range(4):
     plt.savefig(Y[i]+ ".pdf")
 
 lab = ["$c_v$", "$\chi$"]
+cols = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
 plt.figure(figsize=(10,10))
 for i, filt in enumerate(["cv", "chi"]):
     temp = TC[TC["from"]== filt]
 
     as_err = [temp["TC mean"] -temp["TC min"], temp["TC max"]- temp["TC mean"]]
-    plt.errorbar(temp["L"], temp["TC mean"], yerr=0.01, color = cols[0], linestyle='none', barsabove=True)
-    plt.errorbar(TC["L"], temp["TC mean"], yerr=as_err, color = cols[1], linestyle='none', barsabove=True)
-    plt.errorbar(TC["L"], temp["TC mean"], yerr=[-TC["err low"], TC["err up"]],
-                                         color = cols[2 + i], linestyle='none', markers=marker[i], barsabove=False, label =lab[i])
+    plt.errorbar(temp["L"], temp["TC mean"], yerr=0.01, color = cols[0], linestyle='none', solid_capstyle='projecting', capsize=5)
+    plt.errorbar(temp["L"], temp["TC mean"], yerr=as_err, color = cols[1], linestyle='none', solid_capstyle='projecting', capsize=5)
+    plt.errorbar(temp["L"], temp["TC mean"], yerr=[-temp["err low"], temp["err up"]],
+                                         color = cols[2 + i], linestyle='none', marker=marker[i], barsabove=False, label =lab[i])
+    
 plt.legend(loc='best', fontsize =22)
 plt.ylabel("$T_c k_B$ J$^{-1}$", fontsize=24)
 plt.xlabel("L", fontsize=24)
@@ -71,5 +73,4 @@ plt.tick_params(axis = 'both',labelsize = 20)
 plt.tight_layout()
 plt.savefig("TC.pdf")
 
-print(TC)
 # %%
