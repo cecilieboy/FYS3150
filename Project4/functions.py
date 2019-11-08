@@ -102,12 +102,7 @@ def lattice(T,cutoff = 1000, L =10, plot = False):
         new_lattice[position_i,position_j] = - init_lattice[position_i,position_j]
 
         diff_E = E_neighbourhood(position_i,position_j,new_lattice) - E_neighbourhood(position_i,position_j,init_lattice)
-        """
-        print("init\n", init_lattice)
-        print("new\n", new_lattice)
-        print(diff_E)
-        print(M_current)
-        """
+
         rnd_p = random.uniform(0,1)
         if keys_diff_E[diff_E] > rnd_p:
             M_current += 2* new_lattice[position_i, position_j]
