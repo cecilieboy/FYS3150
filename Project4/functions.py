@@ -4,6 +4,7 @@ import random
 from matplotlib import pyplot as plt
 import statistics
 from tqdm import tqdm
+from tqdm import trange
 #%%
 """
 defining all functions for Ising model,
@@ -223,41 +224,7 @@ def anal_sol(T,kb = 1):
 
 
 #%%
-def comp_AB():
 
-    T = 1
-    mean_e, cv, mean_abs_m, chi = anal_sol(T)
-    #print('Anal.solutions:',mean_e,cv,mean_abs_m,chi)
-    cutoff = np.asarray([10,100,1000,5000,10000])
-    #print(len(cutoff))
-    rel_err_e = np.zeros(len(cutoff))
-    rel_err_m = np.zeros(len(cutoff))
-    rel_err_cv = np.zeros(len(cutoff))
-    rel_err_chi = np.zeros(len(cutoff))
-
-    for i in range(len(cutoff)):
-        #print(cutoff[i])
-        en,mn,cvn,chin = repeat_calls(T,cutoff[i],L=2,plot = False,numb_run = 10,)
-        #print(en,mn)
-        rel_err_e[i] = np.abs((en - mean_e) / (mean_e))
-        rel_err_m[i] = np.abs((mn - mean_abs_m) / (mean_abs_m)) 
-        rel_err_cv[i] = np.abs((cvn - cv) / cv)
-        rel_err_chi[i] = np.abs((chin - chi) / chi) 
-
-    #print(rel_err_e)
-    plt.subplot(1,2,1)
-    
-    plt.plot(cutoff,rel_err_e,'b')
-    plt.plot(cutoff,rel_err_m,'r')
-
-    plt.subplot(1,2,2)
-    plt.plot(cutoff,rel_err_cv,'g')
-    plt.plot(cutoff,rel_err_chi,'y')
-    plt.show()
-
-
-
-#%%
 def repeat_calls(T=1,cutoff=10000,L=2,plot = False,numb_run = 4):
     repetition = 0
     E_run = []
@@ -265,7 +232,8 @@ def repeat_calls(T=1,cutoff=10000,L=2,plot = False,numb_run = 4):
     cv_run = []
     chi_run = []
     while repetition < numb_run:
-        _,E_T,_,cv_T,M_T,_,chi_T = lattice(T,cutoff,L,plot=False)
+        _,E_T,_,cv_T,M_T,_,chi_T = lattice(T,cutoff,L,plot=True)
+        #stab_E, stab_M = lattice(T,cutoff,L,plot=True)
         #print(cv_T)
         E_run.append(E_T)
         M_run.append(M_T)
@@ -278,6 +246,56 @@ def repeat_calls(T=1,cutoff=10000,L=2,plot = False,numb_run = 4):
     tot_chi_T = np.mean(chi_T)
 
     return tot_E_T,tot_M_T,tot_cv_T,tot_chi_T
+
+repeat_calls()
+
+#%%
+
+
+def comp_AB():
+
+    T = 1
+    mean_e, cv, mean_abs_m, chi = anal_sol(T)
+    #print('Anal.solutions:',mean_e,cv,mean_abs_m,chi)
+    cutoff = np.asarray([100,250,500,750,1000,1250,1500,2000,2500])
+    #print(len(cutoff))
+    rel_err_e = np.zeros(len(cutoff))
+    rel_err_m = np.zeros(len(cutoff))
+    rel_err_cv = np.zeros(len(cutoff))
+    rel_err_chi = np.zeros(len(cutoff))
+
+    for i in trange(len(cutoff)):
+        #print(cutoff[i])
+        en,mn,cvn,chin = repeat_calls(T,cutoff[i],L=2,plot = False,numb_run = 100)
+        #print(en,mn)
+        rel_err_e[i] = np.abs((en - mean_e) / (mean_e))
+        rel_err_m[i] = np.abs((mn - mean_abs_m) / (mean_abs_m)) 
+        rel_err_cv[i] = np.abs((cvn - cv) / cv)
+        rel_err_chi[i] = np.abs((chin - chi) / chi) 
+
+    
+    plt.subplot(1,2,1)
+    plt.xlabel('MC Samples', fontsize = 20)
+    plt.ylabel('rel err',fontsize = 20)
+    plt.plot(cutoff,rel_err_e,'b',label='Mean E')
+    plt.plot(cutoff,rel_err_m,'r',label='Mean |M|')
+    plt.xticks([100,1000,2000])
+    plt.legend()
+    plt.tight_layout()
+
+    plt.subplot(1,2,2)
+    plt.xlabel('MC Samples',fontsize = 20)
+    plt.ylabel('rel err',fontsize = 20)
+    plt.plot(cutoff,rel_err_cv,'g',label=r'$C_V$')
+    plt.plot(cutoff,rel_err_chi,'y',label=r'$\chi$')
+    plt.legend()
+    plt.xticks([100,1000,2000])
+    plt.tight_layout()
+    plt.savefig("Results/L2Error.pdf")
+    plt.show()
+
+
+
  
 
 
