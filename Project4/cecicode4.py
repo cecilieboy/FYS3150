@@ -115,6 +115,8 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
 
         t += 1
 
+
+        #if plot = false, then we take (hopefully) the more precise energies
         if plot:
             Energies.append(E_current)
             Magnetz.append(M_current)
@@ -234,7 +236,7 @@ def repeat_calls(T=1,cutoff=10000,L=2,plot = False,numb_run = 4):
     cv_run = []
     chi_run = []
     while repetition < numb_run:
-        _,E_T,_,cv_T,M_T,_,chi_T = lattice(T,cutoff,L,plot=False)
+        _,E_T,_,cv_T,M_T,_,chi_T = lattice(T,cutoff,L,plot=False) #now these values should be the mean of the last values taken
         #stab_E, stab_M = lattice(T,cutoff,L,plot=True)
         E_run.append(E_T)
         M_run.append(M_T)
@@ -269,6 +271,8 @@ def comp_AB():
 
     for i in trange(len(cutoff)):
         en,mn,cvn,chin = repeat_calls(T,cutoff[i],L=2,plot = False,numb_run = 100)
+        print(cvn,chin)
+        print()
         rel_err_e[i] = np.abs((en - mean_e) / (mean_e))
         rel_err_m[i] = np.abs((mn - mean_abs_m) / (mean_abs_m)) 
         rel_err_cv[i] = np.abs((cvn - cv) / cv)
@@ -292,19 +296,20 @@ def comp_AB():
     plt.legend()
     plt.xticks([100,1000,2000])
     plt.tight_layout()
-    plt.savefig("Results/L2Error.pdf")
+    #plt.savefig("Results/L2Error.pdf")
     plt.show()
+
+comp_AB()
 
 
 #%%
 
+#%%
 
 
 if __name__ =='__main__':
     #plot_lattice(20, cutoff=10**6)
     #comp_AB()
-   
-    lattice()
     #repeat_calls()
-
+ 
 

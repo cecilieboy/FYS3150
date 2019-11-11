@@ -25,11 +25,11 @@ f = MPI.File.Open(comm, 'paralell_L%i.txt'%L,amode)
 T = np.append(np.append(np.linspace(0.2, 2, 9 ),   #0.2 stepsize
                         np.linspace(2,2.5,25)),     #0.02 stepsize
                         np.linspace(2.5,4.5,10))    #0.2 stepsize
-
+#len(T) = 44
 shape = T.shape
 
 a = shape[0] // worldSize
-N = 1
+N = 10
 
 
 
