@@ -82,15 +82,16 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
 
     init_lattice = np.random.randint(2,size=(L,L))
     init_lattice = np.where(init_lattice==1, 1, -1)
-    
+    #init_lattice = np.ones((L,L))
     
     E_current = energy_of_sate(init_lattice)
     M_current = M(init_lattice)
-
+    accept = 0
     if plot:
         average = np.copy(init_lattice)
         Energies = [E_current]
         Magnetz = [M_current] 
+        configs = [accept]
     else:
         Energies = []
         Magnetz = []
@@ -112,6 +113,7 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
             init_lattice = np.copy(new_lattice)
             
             E_current  += diff_E
+            accept +=1 
 
         t += 1
 
@@ -119,6 +121,7 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
             Energies.append(E_current)
             Magnetz.append(M_current)
             average += np.copy(init_lattice)
+            configs.append(accept)
         elif t > cutoff - 1e5:
             Energies.append(E_current)
             Magnetz.append(M_current)
@@ -127,39 +130,42 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
     Energies = np.array(Energies) /L**2
     Magnetz = np.abs(Magnetz)   / L**2  
     if plot:
-        
+        fs = 32
+        ts = 24
         plt.figure(figsize=(10,10))
         plt.title("T/k$_B$J = %.1f; L = %i"%(T,L), fontsize = 24)
 
         plt.subplot(121)
         plt.plot(Energies) 
-        plt.xlabel('MC cycle', fontsize = 24)
-        plt.ylabel('E/JL$^2$', fontsize = 24)  
-        plt.xticks(fontsize=20, ticks=np.linspace(0, cutoff, 3))
-        plt.yticks(fontsize=20) 
+        plt.xlabel('MC cycle', fontsize = fs)
+        plt.ylabel('E / J L$^{-2}$', fontsize = fs)  
+        plt.ylim(-2.1,0)
+        plt.xticks(fontsize=ts, ticks=np.linspace(0, cutoff, 2))
+        plt.yticks(fontsize=ts) 
 
         plt.subplot(122)
         plt.plot(Magnetz)
-        plt.xlabel('MC cycle', fontsize = 24)
-        plt.ylabel('|M|/$\mu L^2$', fontsize = 24)
-        plt.xticks(fontsize=20, ticks=np.linspace(0, cutoff, 3))
-        plt.yticks(fontsize=20)
+        plt.xlabel('MC cycle', fontsize = fs)
+        plt.ylabel('|M| / $\mu L^{-2}$', fontsize = fs)
+        plt.ylim(0,1.1)
+        plt.xticks(fontsize=ts, ticks=np.linspace(0, cutoff, 2))
+        plt.yticks(fontsize=ts)
         
         plt.tight_layout()
-        #plt.savefig("./Results/Random_Walk_L%i_T%i.pdf"%(L, 10*T))
+        plt.savefig("./Results/Random_Walk_L%i_T%i.pdf"%(L, 10*T))
 
         plt.figure(figsize=(10,10), clear = True)
-        plt.title("T/k$_B$J = %.2f; L = %i"%(T,L), fontsize = 26)
-        c = plt.imshow(average/cutoff, cmap='coolwarm')
+        plt.title("T k$_B$/J = %.2f; L = %i"%(T,L), fontsize = 26)
+        c = plt.imshow(init_lattice, cmap='coolwarm')
         ax=plt.colorbar(c)
-        ax.set_label("S", fontsize = 24)
-        plt.xlabel('x a.u.', fontsize = 24)
-        plt.ylabel('y a.u.', fontsize = 24)
-        plt.xticks(fontsize=20)
-        plt.yticks(fontsize=20)
-        plt.savefig("./Results/Average_Lattice_L%i_T%i.pdf"%(L, 10*T))
+        ax.set_label("S", fontsize = fs)
+        plt.xlabel('x a.u.', fontsize = fs)
+        plt.ylabel('y a.u.', fontsize = fs)
+        plt.xticks(fontsize=ts)
+        plt.yticks(fontsize=ts)
+        plt.savefig("./Results/Final_Lattice_L%i_T%i.pdf"%(L, 10*T))
 
-        return Energies[cutoff//2:], Magnetz[cutoff//2:]
+        return Energies[cutoff//2:], Magnetz[cutoff//2:], configs
 
 
 
@@ -175,28 +181,36 @@ def plot_lattice(L, cutoff=10**7, temp = [1.0, 2.4, 3.0]):
     """
     function to plot lattice random walks and distribution in stable tail of random walk
     """
-    fig = np.array([plt.subplots(1, figsize=(10,10)) for i in range(2)])
-    
+    fig = np.array([plt.subplots(1, figsize=(10,10)) for i in range(3)])
+    fs = 32
+    ts = 24
     for T in tqdm(temp):
-        stab_E, stab_M = lattice(T,cutoff=cutoff,L=L,plot = True)
+        stab_E, stab_M, accept = lattice(T,cutoff=cutoff,L=L,plot = True)
 
         if T == 1.0:
             b = 5
         else:
             b = 15
-
+        print(np.var(stab_E))
         fig[0,1].hist(stab_E, bins = b, weights=np.ones(len(stab_E))/len(stab_E), density=False, alpha = 0.6, label="T/k$_B$J = %.1f"%T)
         fig[1,1].hist(stab_M, bins = b, weights=np.ones(len(stab_M))/len(stab_M), density=False, alpha = 0.6, label="T/k$_B$J = %.1f"%T)
+        fig[2,1].plot(accept, label="T/k$_B$J = %.1f"%T)
        
-    fig[0,1].set_xlabel('E/JL$^2$', fontsize = 24)  
-    fig[0,1].set_ylabel('P(E)', fontsize = 24)  
-    fig[0,1].tick_params(axis = 'both',labelsize = 20)
-    fig[0,1].legend(loc='best', fontsize =22)
+    fig[0,1].set_xlabel('E / J L$^{-2}$', fontsize = fs)  
+    fig[0,1].set_ylabel('P(E)', fontsize = fs)  
+    fig[0,1].tick_params(axis = 'both',labelsize = ts)
+    fig[0,1].legend(loc='best', fontsize =fs-2)
 
-    fig[1,1].set_xlabel('|M|/$\mu L^2$', fontsize = 24)  
-    fig[1,1].set_ylabel('P(|M|)', fontsize = 24)  
-    fig[1,1].tick_params(axis = 'both',labelsize = 20)
-    fig[1,1].legend(loc='best', fontsize =22)
+    fig[1,1].set_xlabel('|M| / $\mu L^{-2}$', fontsize = fs)  
+    fig[1,1].set_ylabel('P(|M|)', fontsize = fs)  
+    fig[1,1].tick_params(axis = 'both',labelsize = ts)
+    fig[1,1].legend(loc='best', fontsize =fs-2)
+
+    fig[2,1].set_xlabel('MC cycles', fontsize = fs)  
+    fig[2,1].set_xticks(ticks=np.linspace(0, cutoff, 2))
+    fig[2,1].set_ylabel('tot. accept config.', fontsize = fs)  
+    fig[2,1].tick_params(axis = 'both',labelsize = ts)
+    fig[2,1].legend(loc='best', fontsize =fs-2)
 
     plt.figure(fig[0,0].number)
     plt.tight_layout()
@@ -205,6 +219,11 @@ def plot_lattice(L, cutoff=10**7, temp = [1.0, 2.4, 3.0]):
     plt.figure(fig[1,0].number)
     plt.tight_layout()
     plt.savefig("Magnet_%i.pdf"%L)
+
+    plt.figure(fig[2,0].number)
+    plt.tight_layout()
+    plt.savefig("config_%i.pdf"%L)
+
 
 #%%
 
@@ -301,10 +320,11 @@ def comp_AB():
 
 
 if __name__ =='__main__':
-    #plot_lattice(20, cutoff=10**6)
+    lattice(0.2,10**7,L=100,plot=True)
+    #plot_lattice(100, cutoff=10**7)
     #comp_AB()
    
-    lattice()
+    #lattice()
     #repeat_calls()
 
 
