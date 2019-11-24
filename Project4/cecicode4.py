@@ -121,13 +121,13 @@ def lattice(T,cutoff = 1000, L =2, plot = False):
             Energies.append(E_current)
             Magnetz.append(M_current)
             average += np.copy(init_lattice)
-        elif t > cutoff - 1e5:
+        elif t > cutoff - 100000:
             Energies.append(E_current)
             Magnetz.append(M_current)
         
 
-    Energies = np.array(Energies) /L**2
-    Magnetz = np.abs(Magnetz)   / L**2  
+    Energies = np.array(Energies) #/L**2
+    Magnetz = np.abs(Magnetz)   #/ L**2  
     if plot:
         
         plt.figure(figsize=(10,10))
@@ -220,8 +220,11 @@ def anal_sol(T,kb = 1):
     cv = 1 / (8 * T) * x * ((8**2) * np.cosh(x) / (np.cosh(x) + 3) - ((8 * np.sinh(x)) / (np.cosh(x) + 3))**2)
     mean_abs_m = (8 * np.exp(x) + 16) / (4 * (np.cosh(x) + 3))
     chi = 1 / 8 * x * ((8 * (np.exp(x) + 1)) / (np.cosh(x) + 3) - ((2 * (np.exp(x) + 2)) / (np.cosh(x) + 3))**2)
+    print(cv,chi)
     return mean_e,cv,mean_abs_m,chi
 
+
+anal_sol(1)
 
 #%%
 
@@ -264,6 +267,8 @@ def comp_AB():
     mean_e, cv, mean_abs_m, chi = anal_sol(T)
     #print('Anal.solutions:',mean_e,cv,mean_abs_m,chi)
     cutoff = np.asarray([100,250,500,750,1000,1250,1500,2000,2500])
+    #cutoff = np.asarray([15000,20000,30000])
+    #cutoff = np.linspace(100,2500,100)
     rel_err_e = np.zeros(len(cutoff))
     rel_err_m = np.zeros(len(cutoff))
     rel_err_cv = np.zeros(len(cutoff))
@@ -271,7 +276,7 @@ def comp_AB():
 
     for i in trange(len(cutoff)):
         en,mn,cvn,chin = repeat_calls(T,cutoff[i],L=2,plot = False,numb_run = 100)
-        print(cvn,chin)
+        print(en,mn,cvn,chin)
         print()
         rel_err_e[i] = np.abs((en - mean_e) / (mean_e))
         rel_err_m[i] = np.abs((mn - mean_abs_m) / (mean_abs_m)) 
@@ -299,7 +304,6 @@ def comp_AB():
     #plt.savefig("Results/L2Error.pdf")
     plt.show()
 
-comp_AB()
 
 
 #%%
@@ -309,7 +313,11 @@ comp_AB()
 
 if __name__ =='__main__':
     #plot_lattice(20, cutoff=10**6)
-    #comp_AB()
+    comp_AB()
     #repeat_calls()
+    #lattice()
  
 
+
+
+# %%
