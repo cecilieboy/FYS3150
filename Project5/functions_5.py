@@ -58,9 +58,67 @@ def runge_katta(stepsize, numb_steps, b = [1,2,3,4], N=400, a=4, c=0.5):
         df.to_csv('Results/b=%i.csv'%(b[i]))
 
   
+# %%
+def S_to_I(b, S, I, R, stepsize, N=400, a=4, c=0.5):
+    return a * S * I / N * stepsize
 
+def I_to_R(b, S, I, R, stepsize, N=400, a=4, c=0.5):
+    return b * I * stepsize 
+
+def R_to_S(b, S, I, R, stepsize, N=400, a=4, c=0.5):
+    return c * R * stepsize
 #%%
-runge_katta(0.5,1000)
+def MC(numb_steps, b = [1,2,3,4], N=400, a=4, c=0.5):
+
+    
+    for i in range (len(b)):
+        stepsize = min([4 / (a * N), 1 / (b[i] * N), 1 / (c * N)])
+ 
+        S = np.zeros(numb_steps)
+        I = np.zeros(numb_steps)
+        R = np.zeros(numb_steps)
+
+        S[0] = 300
+        I[0] = 100
+        R[0] = 0
+
+        for j in range(numb_steps - 1):
+            psi_p = random.uniform(0,1)
+            pir_p = random.uniform(0,1)
+            prs_p = random.uniform(0,1)
+
+            if S_to_I(b[i],S[j],I[j], R[j], stepsize) > psi_p:
+                S[j + 1] = S[j] - 1
+                I[j + 1] = I[j] + 1
+            else:
+                S[j + 1] = S[j]
+                I[j + 1] = I[j]
+
+            if I_to_R(b[i],S[j],I[j], R[j], stepsize) > pir_p:
+                I[j + 1] = I[j + 1] - 1
+                R[j + 1] = R[j] + 1
+            else:
+                I[j + 1] = I[j + 1]
+                R[j + 1] = R[j]
+
+            if R_to_S(b[i],S[j],I[j], R[j], stepsize) > pir_p:
+                R[j + 1] = R[j + 1] - 1
+                S[j + 1] = S[j + 1] + 1
+            else:
+                R[j + 1] = R[j + 1]
+                S[j + 1] = S[j + 1]
+
+        #Data = {'time':timearray, 'S':S, 'I':I, 'R': R}
+        #df = pd.DataFrame(Data)
+        #df.to_csv('Results/b=%i.csv'%(b[i]))
+
+        Data = {'S':S, 'I':I, 'R': R}
+        df = pd.DataFrame(Data)
+        df.to_csv('Results/MC_b=%i.csv'%(b[i]))
+
+# %%
+MC(20000)  
+#%%  
 #%%
 
 
