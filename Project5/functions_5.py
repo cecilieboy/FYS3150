@@ -55,7 +55,9 @@ def runge_katta(stepsize, numb_steps, b = [1,2,3,4], N=400, a=4, c=0.5):
 
         Data = {'time':timearray, 'S':S, 'I':I, 'R': R}
         df = pd.DataFrame(Data)
-        df.to_csv('Results/b=%i.csv'%(b[i]))
+        df.to_csv('Results/RK_b=%i.csv'%(b[i]))
+
+runge_katta(0.5,100)
 
   
 # %%
@@ -69,11 +71,12 @@ def R_to_S(b, S, I, R, stepsize, N=400, a=4, c=0.5):
     return c * R * stepsize
 #%%
 def MC(numb_steps, b = [1,2,3,4], N=400, a=4, c=0.5):
-
     
-    for i in range (len(b)):
+    for i in trange (len(b)):
         stepsize = min([4 / (a * N), 1 / (b[i] * N), 1 / (c * N)])
- 
+        cutoff = numb_steps * stepsize
+        timearray = np.arange(0, cutoff, stepsize)
+
         S = np.zeros(numb_steps)
         I = np.zeros(numb_steps)
         R = np.zeros(numb_steps)
@@ -108,16 +111,13 @@ def MC(numb_steps, b = [1,2,3,4], N=400, a=4, c=0.5):
                 R[j + 1] = R[j + 1]
                 S[j + 1] = S[j + 1]
 
-        #Data = {'time':timearray, 'S':S, 'I':I, 'R': R}
-        #df = pd.DataFrame(Data)
-        #df.to_csv('Results/b=%i.csv'%(b[i]))
-
-        Data = {'S':S, 'I':I, 'R': R}
+        Data = {'time':timearray, 'S':S, 'I':I, 'R': R}
         df = pd.DataFrame(Data)
         df.to_csv('Results/MC_b=%i.csv'%(b[i]))
 
-# %%
-MC(20000)  
+
+#%%
+ 
 #%%  
 #%%
 
