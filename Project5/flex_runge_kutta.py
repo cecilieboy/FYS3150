@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 #%%
 def rhs_S(t, S, I, a= 4, b= 1, c= 0.5, A =0, omega =1, f = 0, N=400):
-    a_t = max(0.5,A*np.cos(omega*t) +a)
+    a_t = max(0,A*np.cos(omega*t) +a)
     f_t = max(0,f*np.cos((omega-0.05)*t + 0.05))
     return c * (N - S - I) - a_t * S * I / N - f_t
 
@@ -62,8 +62,8 @@ def runge_kutta(stepsize, t_max, X_0, RHS, kargs_RHS, var_names =["S", "I"]):
  
     return pd.DataFrame(X_t.T, columns=np.append(["time"], var_names)) 
 #%%
-def save_plot(df, par):
-    plt.figure(figsize=(10,10))
+def save_plot(df, par, path = "./Results/Runge_Kutta/"):
+    f =plt.figure(figsize=(10,10))
     for name in ["S", "I", "R"]:
         plt.plot(df["time"], df[name], label=name)
     plt.legend(loc='best', fontsize = 28)
@@ -72,7 +72,8 @@ def save_plot(df, par):
     plt.ylim(0,400)
     plt.tick_params(size =24, labelsize=26)
     plt.tight_layout()
-    plt.savefig("./Results/exp_runge_%s_%i.pdf"%(par[0], int(par[1])))
+    plt.savefig(path + "%s_%i.pdf"%(par[0], int(par[1])))
+    del f
 
 def eval_model(par_to_vary, N = 400, X_0= [300, 100], t_max = 15, kargs = [{}, {}]):
     
@@ -83,16 +84,17 @@ def eval_model(par_to_vary, N = 400, X_0= [300, 100], t_max = 15, kargs = [{}, {
         df = runge_kutta(0.01, t_max, X_0, [rhs_S, rhs_I], kargs_all)
         df["R"] = N- df["S"] - df["I"]
         save_plot(df, (par_to_vary[0], p))
-"""
-eval_model(('b', [1,2,3,4]))
-eval_model(('A', [0.5, 1,2 ,4]), t_max= 25)
-eval_model(('omega', [0.2, 0.7, 2, 4 ]), t_max= 25, kargs=[{'A':1}, {'A':1}])
-eval_model(('f', [1, 5, 10, 20]))
+
+if __name__ == '__main__':
+    eval_model(('b', [1,2,3,4]))
+    eval_model(('A', [0.5, 1,2 ,4]), t_max= 25)
+    eval_model(('omega', [0.2, 0.7, 2, 4 ]), t_max= 25, kargs=[{'A':1}, {'A':1}])
+    eval_model(('f', [1, 5, 10, 20]))
 """
 df = runge_kutta(0.01, 30, [300, 100], [rhs_S, rhs_I],
                 [{'A':3, 'f':30, 'a':1, 'c':1.5}, {'A':3,'a':1, 'c':1.5}])
 df["R"] = 400- df["S"] - df["I"]
 save_plot(df, ('influenza_w_vac', 1))
-
+"""
 
 # %%
