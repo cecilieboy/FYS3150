@@ -7,7 +7,7 @@ import random
 #%%
 b = [1,2,3,4]
 for i in range(len(b)):
-    df = pd.read_csv('Results/RK_b=%i.csv'%b[i],usecols=['time','S','I','R'])
+    df = pd.read_csv('Results/a_RK_b=%i.csv'%b[i],usecols=['time','S','I','R'])
     plt.figure()
     ax = plt.gca()
     df.plot.line(x='time',y='S',ax=ax)
@@ -15,12 +15,13 @@ for i in range(len(b)):
     df.plot.line(x='time',y='R',ax=ax)
     plt.ylabel('# Inhabitants')
     plt.yticks(np.arange(0,500,100))
+    plt.xticks(np.arange(0,50,10))
     plt.savefig("./Results/runge_katta_b=%i.pdf"%b[i])
 
 
 # %%
 for i in range(len(b)):
-    df = pd.read_csv('Results/MC_b=%i.csv'%b[i],usecols=['time','S','I','R'])
+    df = pd.read_csv('Results/a_MC_b=%i.csv'%b[i],usecols=['time','S','I','R'])
     plt.figure()
     ax = plt.gca()
     df.plot.line(x='time',y='S',ax=ax)
@@ -28,6 +29,7 @@ for i in range(len(b)):
     df.plot.line(x='time',y='R',ax=ax)
     plt.ylabel('# Inhabitants')
     plt.yticks(np.arange(0,500,100))
+    plt.xticks(np.arange(0,50,10))
     plt.savefig("./Results/monte_carlo_b=%i.pdf"%b[i])
 
 
