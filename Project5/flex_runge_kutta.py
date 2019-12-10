@@ -9,12 +9,14 @@ import matplotlib.pyplot as plt
 #%%
 def rhs_S(t, S, I, a= 4, b= 1, c= 0.5, A =0, omega =1, f = 0, N=400):
     a_t = max(0,A*np.cos(omega*t) +a)
-    f_t = max(0,f*np.cos((omega-0.05)*t + 0.05))
+    f_t = f #max(0,f*np.cos((omega-0.05)*t + 0.05))
     return c * (N - S - I) - a_t * S * I / N - f_t
 
 def rhs_I(t, S, I, a= 4, b= 1, c= 0.5, A =0, omega =1,f = 0, N=400):
     a_t = max(A*np.cos(omega*t) +a,0-5)
     return a_t * S * I / N - b * I
+
+
 #%%
 def k_updates(RHS, X, RHS_kargs, stepsize):
     weights = np.array([1,2,2,1])
