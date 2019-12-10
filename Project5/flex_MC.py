@@ -58,7 +58,8 @@ def SIR_MC(cutoff, transition_rule, kargs_transition_rule, update_rule, start_co
            if rands[j] < transition_rule[j](stepsize, *counts[:,i-1], **kargs_transition_rule[j]):
                #update all relevant groups
                for update_index, update in update_rule[j]:
-                   counts[1 + update_index, i] += update
+                   to_update =  max(0,counts[1 + update_index, i] + update) #ensures count
+                   counts[1 + update_index, i] = to_update
 
     return pd.DataFrame(counts.T, columns=np.append(["time"], group_names)) 
 
