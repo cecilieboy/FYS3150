@@ -84,9 +84,3 @@ if __name__ == '__main__':
     eval_model(('A', [0.5, 1,2 ,4]), t_max= 50)
     eval_model(('omega', [0.2, 0.7, 2, 4 ]), t_max= 50, add_kargs={'A':1})
     eval_model(('f', [0.5, 1, 2, 4]), t_max= 50)
-
-"""
-df = SIR_MC(15, [S_to_I, I_to_R, R_to_S], [{'a':4}, {'b':1}, {'c':0.5}], [[(0,-1),(1,1)], [(1,-1), (2,1)], [(2,-1),(0,1)]],[300,100,0])
-df.to_csv("MC_b1_t15.csv")
-save_plot(df, ('test',0))
-"""

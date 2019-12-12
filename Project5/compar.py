@@ -1,3 +1,7 @@
+"""
+script to compare Runge-Kutta solution and MC SIRS
+currently set to reproduce MEasles in US
+"""
 from flex_MC import SIR_MC
 from flex_runge_kutta import runge_kutta
 import numpy as np 

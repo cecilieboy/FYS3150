@@ -92,11 +92,6 @@ if __name__ == '__main__':
     eval_model(('A', [0.5, 1,2 ,4]), t_max= 25)
     eval_model(('omega', [0.2, 0.7, 2, 4 ]), t_max= 25, kargs=[{'A':1}, {'A':1}])
     eval_model(('f', [1, 5, 10, 20]))
-"""
-df = runge_kutta(0.01, 30, [300, 100], [rhs_S, rhs_I],
-                [{'A':3, 'f':30, 'a':1, 'c':1.5}, {'A':3,'a':1, 'c':1.5}])
-df["R"] = 400- df["S"] - df["I"]
-save_plot(df, ('influenza_w_vac', 1))
-"""
+
 
 # %%
